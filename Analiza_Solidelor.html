@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analiza Solidelor — MI-SWACO Cap. 9</title>
+<style>
+:root{--bg:#0a0908;--bg-elev:#13110f;--bg-card:#1a1714;--ink:#f0e7d8;--ink-dim:#a89f8e;
+--ink-faint:#6b6354;--rust:#c1440e;--amber:#e8a447;--green:#5a8c4a;--red:#a83232;--blue:#4a7c8c;
+--line:#2a2520;--line-warm:#3d3429}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;font-size:15px;
+background-image:radial-gradient(circle at 20% 0%,rgba(193,68,14,.06),transparent 40%)}
+.mono{font-family:ui-monospace,'SF Mono',Menlo,Consolas,'Courier New',monospace}
+header{padding:24px 18px 16px;border-bottom:1px solid var(--line)}
+header .w{max-width:960px;margin:0 auto}
+.title{font-family:Georgia,'Times New Roman',serif;font-weight:800;font-size:clamp(23px,6vw,32px);line-height:1;letter-spacing:-.02em;
+background:linear-gradient(180deg,var(--ink),var(--amber));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.sub{color:var(--ink-dim);font-size:12px;margin-top:6px;letter-spacing:.05em;text-transform:uppercase}
+.badge{display:inline-block;margin-top:9px;font-size:11px;font-family:ui-monospace,'SF Mono',Menlo,Consolas,'Courier New',monospace;padding:4px 9px;
+border-radius:5px;background:rgba(90,140,74,.15);color:#8fb37c;border:1px solid rgba(90,140,74,.35)}
+main{max-width:960px;margin:0 auto;padding:18px 16px 70px}
+.card{background:var(--bg-card);border:1px solid var(--line);border-radius:14px;padding:17px;margin-bottom:15px}
+.card h2{font-family:Georgia,'Times New Roman',serif;font-size:17px;font-weight:600;margin-bottom:3px}
+.card .hint{color:var(--ink-faint);font-size:12px;margin-bottom:13px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(min-width:680px){.grid{grid-template-columns:repeat(3,1fr)}}
+.f{display:flex;flex-direction:column;gap:5px}
+.f label{font-size:11px;color:var(--amber);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.f label span{color:var(--ink-faint);text-transform:none;letter-spacing:0;font-weight:400}
+.f input{background:var(--bg-elev);border:1px solid var(--line-warm);color:var(--ink);padding:9px 11px;
+border-radius:8px;font-family:ui-monospace,'SF Mono',Menlo,Consolas,'Courier New',monospace;font-size:14px;width:100%}
+.f input:focus{outline:none;border-color:var(--amber)}
+.f input.bad{border-color:var(--red);background:rgba(168,50,50,.09)}
+.f input[readonly]{color:var(--ink-faint);background:#0d0c0b}
+.seg{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
+.seg button{flex:1;min-width:104px;background:transparent;border:1px solid var(--line-warm);color:var(--ink-dim);
+padding:9px 8px;border-radius:8px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.seg button.on{background:var(--rust);color:#fff;border-color:var(--rust)}
+.subttl{font-size:11px;color:var(--amber);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin:14px 0 7px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:5px}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line)}
+th{background:var(--bg-elev);color:var(--amber);font-size:10px;letter-spacing:.07em;text-transform:uppercase;font-weight:600}
+td.n{font-family:ui-monospace,'SF Mono',Menlo,Consolas,'Courier New',monospace;text-align:right}
+tr.hi td{background:rgba(232,164,71,.07);font-weight:600}
+tr.tot td{border-top:2px solid var(--line-warm);font-weight:700}
+tr.bad td{background:rgba(168,50,50,.10)}
+tr.good td{background:rgba(90,140,74,.10)}
+.tw{overflow-x:auto;margin:0 -17px;padding:0 17px}
+.note{border-left:3px solid var(--rust);background:rgba(193,68,14,.06);padding:11px 13px;border-radius:0 8px 8px 0;margin:10px 0;font-size:13px}
+.note.wa{border-color:var(--amber);background:rgba(232,164,71,.06)}
+.note.ok{border-color:var(--green);background:rgba(90,140,74,.06)}
+.note.er{border-color:var(--red);background:rgba(168,50,50,.09)}
+.note.info{border-color:var(--blue);background:rgba(74,124,140,.07)}
+.note b{color:var(--amber)}
+.big{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:13px 0}
+@media(min-width:680px){.big{grid-template-columns:repeat(4,1fr)}}
+.b{background:var(--bg-elev);border:1px solid var(--line);border-radius:10px;padding:12px}
+.b .v{font-family:Georgia,'Times New Roman',serif;font-weight:800;font-size:25px;line-height:1;color:var(--amber)}
+.b .l{font-size:10px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.06em;margin-top:5px}
+.b .u{font-size:11px;color:var(--ink-dim);margin-top:3px;font-family:ui-monospace,'SF Mono',Menlo,Consolas,'Courier New',monospace}
+.b.g .v{color:#8fb37c}.b.r .v{color:#d66060}.b.bl .v{color:#7fb3c4}.b.dead .v{color:var(--ink-faint)}
+.conf{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+padding:3px 8px;border-radius:5px;margin-left:8px;vertical-align:3px}
+.conf.ok{background:rgba(90,140,74,.18);color:#8fb37c;border:1px solid rgba(90,140,74,.4)}
+.conf.wa{background:rgba(232,164,71,.16);color:var(--amber);border:1px solid rgba(232,164,71,.4)}
+.conf.er{background:rgba(168,50,50,.18);color:#d66060;border:1px solid rgba(168,50,50,.4)}
+.b .pm{font-size:12px;color:var(--ink-faint);font-family:ui-monospace,'SF Mono',Menlo,Consolas,'Courier New',monospace;margin-left:4px}
+.bar{height:26px;display:flex;border-radius:6px;overflow:hidden;margin:9px 0 4px;border:1px solid var(--line-warm)}
+.bar div{display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;
+font-family:ui-monospace,'SF Mono',Menlo,Consolas,'Courier New',monospace;overflow:hidden;white-space:nowrap;color:#0a0908}
+.leg{display:flex;gap:13px;flex-wrap:wrap;font-size:11px;color:var(--ink-dim);margin-bottom:3px}
+.leg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+details{border:1px solid var(--line);border-radius:10px;margin-top:11px;background:var(--bg-elev)}
+summary{cursor:pointer;padding:12px 14px;font-size:13px;font-weight:600;list-style:none;color:var(--ink-dim)}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"+ ";color:var(--amber);font-family:'JetBrains Mono'}
+details[open] summary::before{content:"− "}
+details .in{padding:0 14px 14px;font-size:13px;color:var(--ink-dim)}
+.eq{font-family:ui-monospace,'SF Mono',Menlo,Consolas,'Courier New',monospace;font-size:11.5px;color:var(--amber);background:var(--bg);
+border:1px solid var(--line);border-radius:6px;padding:9px 11px;margin:8px 0;overflow-x:auto;white-space:pre}
+.chk{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--ink-dim);cursor:pointer;padding:9px 0}
+.chk input{width:17px;height:17px;accent-color:var(--rust)}
+.btn{background:var(--rust);color:#fff;border:none;padding:11px 18px;border-radius:9px;
+font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;margin-top:12px}
+.btn.sec{background:transparent;border:1px solid var(--line-warm);color:var(--ink-dim)}
+#raport{width:100%;min-height:230px;background:var(--bg);border:1px solid var(--line-warm);color:var(--ink);
+border-radius:9px;padding:12px;font-family:ui-monospace,'SF Mono',Menlo,Consolas,'Courier New',monospace;font-size:11.5px;margin-top:10px;display:none;white-space:pre}
+footer{border-top:1px solid var(--line);margin-top:34px;padding:20px 16px;text-align:center;color:var(--ink-faint);font-size:11.5px}
+</style></head><body>
+<header><div class="w">
+<div class="title">Analiza Solidelor</div>
+<div class="sub">MI-SWACO Engineering Drilling Fluids Manual · Cap. 9, p. 9.31–9.35</div>
+<div class="badge" id="statusBadge">375 teste motor + 251 teste interfață · 0 eșecuri</div>
+</div></header>
+<noscript><div style="max-width:960px;margin:20px auto;padding:16px;background:rgba(168,50,50,.12);
+border:1px solid rgba(168,50,50,.4);border-radius:12px;color:#f0e7d8">
+<b style="color:#d66060">JavaScript este dezactivat.</b><br>
+Programul face toate calculele local, în browser. Activează JavaScript sau deschide fișierul într-un browser
+obișnuit (Safari, Chrome, Edge) — nu într-o fereastră de previzualizare.
+</div></noscript>
+<div id="jsAlert" style="max-width:960px;margin:20px auto;padding:16px;background:rgba(168,50,50,.12);
+border:1px solid rgba(168,50,50,.45);border-radius:12px;color:#f0e7d8;font-size:14px">
+<b style="color:#d66060">Calculele nu au pornit.</b><br>
+Dacă vezi acest mesaj după încărcarea paginii, fișierul este deschis într-un vizualizator care nu execută
+JavaScript — de exemplu previzualizarea din aplicația Fișiere pe iPhone. Deschide-l cu un browser.
+</div>
+<main>
+
+<div class="card">
+  <h2>1 · Măsurători de laborator</h2>
+  <div class="hint">Mărimile determinate direct pe probă.</div>
+  <div class="grid">
+    <div class="f"><label>Densitate noroi <span>SG</span></label><input type="number" id="rhoMud" value="1.18" step="0.001"></div>
+    <div class="f"><label>Retort apă <span>%</span></label><input type="number" id="vWater" value="86.4" step="0.1"></div>
+    <div class="f"><label>Retort ulei <span>%</span></label><input type="number" id="vOil" value="2.0" step="0.1"></div>
+    <div class="f"><label>Cloruri <span>mg/L</span></label><input type="number" id="cl" value="35500" step="100"></div>
+    <div class="f"><label>K⁺ <span>mg/L</span></label><input type="number" id="k" value="37500" step="100"></div>
+    <div class="f"><label>Ca²⁺ <span>mg/L</span></label><input type="number" id="ca" value="80" step="10"></div>
+    <div class="f"><label>Mg²⁺ <span>mg/L</span></label><input type="number" id="mg" value="0" step="10"></div>
+    <div class="f"><label>MBT <span>kg/m³</span></label><input type="number" id="mbt" value="31.5" step="0.5"></div>
+    <div class="f"><label>Nisip <span>% vol · sită 200 mesh</span></label><input type="number" id="sand" value="0.2" step="0.1"></div>
+    <div class="f"><label>Material greu pompat <span>kg/m³ · opțional</span></label><input type="number" id="invKg" value="0" step="1"></div>
+    <div class="f"><label>Retort solide <span>% · calculat</span></label><input type="number" id="vSolRaw" readonly></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>2 · Sistemul de sare</h2>
+  <div class="hint">Baza mixtă alocă clorul cationilor măsurați, în ordine, și numără sărurile total.</div>
+  <div class="seg" id="segSalt">
+    <button data-v="mixed" class="on">Mixt — săruri totale</button>
+    <button data-v="nacl">NaCl din Cl⁻ (carte)</button>
+    <button data-v="kcl">KCl din K⁺</button>
+    <button data-v="none">Fără sare</button>
+  </div>
+  <div class="note info" id="saltUse"></div>
+  <div class="tw"><table id="tSalt"></table></div>
+  <div class="tw" id="ionsWrap" style="margin-top:10px"><table id="tIons"></table></div>
+</div>
+
+<div class="card">
+  <h2>3 · Ipoteze de calcul</h2>
+  <div class="hint">Valorile implicite provin din manuale. Oricare poate fi modificată în secțiunea de parametri avansați — tabelul arată mereu ce se folosește efectiv și de unde vine.</div>
+  <div class="note" id="modNote"></div>
+  <div class="tw"><table id="tIpoteze"></table></div>
+</div>
+
+<div class="card">
+  <h2>4 · Material de îngreunare</h2>
+  <div class="seg" id="segMat">
+    <button data-v="4.20">Barită 4,20</button>
+    <button data-v="5.00">Hematit 5,00</button>
+    <button data-v="4.30">Ironite 4,30</button>
+    <button data-v="2.70" class="on">CaCO₃ 2,70</button>
+    <button data-v="2.80">LO-WATE 2,80</button>
+  </div>
+  <div class="grid">
+    <div class="f"><label>SG material greu</label><input type="number" id="rhoHGS" value="2.70" step="0.01"></div>
+  </div>
+  <div class="note info" id="bentNote"></div>
+</div>
+
+<div class="card">
+  <h2>5 · Rezultate</h2>
+  <div class="big">
+    <div class="b"><div class="v" id="oSol">–</div><div class="l">Solide corectate</div><div class="u">% vol</div></div>
+    <div class="b bl"><div class="v" id="oHgs">–</div><div class="l">HGS</div><div class="u" id="oHgsU">–</div></div>
+    <div class="b g"><div class="v" id="oLgs">–</div><div class="l">LGS total</div><div class="u" id="oLgsU">–</div></div>
+    <div class="b r"><div class="v" id="oDs">–</div><div class="l">DS detritus</div><div class="u" id="oDsU">–</div></div>
+  </div>
+  <div class="leg"><span><i style="background:#4a7c8c"></i>Saramură</span><span><i style="background:#8b7355"></i>Ulei</span>
+    <span><i style="background:#7fb3c4"></i>HGS</span><span><i style="background:#8fb37c"></i>Bentonită</span><span><i style="background:#d66060"></i>DS</span></div>
+  <div class="bar" id="bar"></div>
+  <div class="tw"><table id="tbl"></table></div>
+  <div id="confBox"></div>
+  <div class="subttl">Compoziția solidelor — ce conține ce</div>
+  <div class="tw"><table id="tIerarhie"></table></div>
+  <div class="subttl">Reactivitatea solidelor de gravitate mică</div>
+  <div class="tw"><table id="tReact"></table></div>
+  <div id="msgs"></div>
+  <button class="btn" id="btnRaport">Generează raport text</button>
+  <button class="btn sec" id="btnCopy">Copiază</button>
+  <textarea id="raport" readonly></textarea>
+</div>
+
+<div class="card">
+  <h2>6 · Diagnostic — domeniul admisibil</h2>
+  <div class="hint">SG-ul mediu al solidelor trebuie să cadă între SG detritus și SG material greu. Tabelul arată ce valori satisfac condiția, celelalte fiind fixe.</div>
+  <div class="tw"><table id="tDiag"></table></div>
+  <div id="diagNote"></div>
+</div>
+
+<div class="card">
+  <h2>7 · Sensibilitate</h2>
+  <div class="hint">Efectul unei abateri de măsurare asupra rezultatului.</div>
+  <div class="tw"><table id="tSens"></table></div>
+</div>
+
+<div class="card">
+  <h2>8 · Weight-up</h2>
+  <div class="grid"><div class="f"><label>Densitate țintă <span>SG</span></label><input type="number" id="rhoT" value="1.25" step="0.01"></div></div>
+  <div class="tw"><table id="tWU"></table></div>
+</div>
+
+<div class="card">
+  <h2>9 · Analiză incrementală — referință + increment</h2>
+  <div class="hint">Dacă la un moment dat se cunoaște sigur cât detritus e în sistem (de regulă zero — sistem proaspăt construit sau curățat complet), orice creștere ulterioară de densitate care nu vine din material adăugat este, prin excludere, detritus de foraj. Nu mai e nevoie de nicio împărțire prin densitate — deci nu mai există ambiguitatea ferestrei înguste.</div>
+
+  <div class="subttl">Referință — punctul de la care se pornește</div>
+  <div class="grid">
+    <div class="f"><label>Densitate referință <span>SG</span></label><input type="number" id="incRhoMud0" value="1.17" step="0.001"></div>
+    <div class="f"><label>Retort apă <span>%</span></label><input type="number" id="incVWater0" value="90" step="0.1"></div>
+    <div class="f"><label>Retort ulei <span>%</span></label><input type="number" id="incVOil0" value="0" step="0.1"></div>
+    <div class="f"><label>LGS asumat la referință <span>% vol · de regulă 0</span></label><input type="number" id="incVLGS0" value="0" step="0.1"></div>
+  </div>
+
+  <div class="subttl">Verificarea curentă</div>
+  <div class="grid">
+    <div class="f"><label>Densitate curentă <span>SG</span></label><input type="number" id="incRhoMud1" value="1.178" step="0.001"></div>
+    <div class="f"><label>Retort apă <span>%</span></label><input type="number" id="incVWater1" value="89.5" step="0.1"></div>
+    <div class="f"><label>Retort ulei <span>%</span></label><input type="number" id="incVOil1" value="0" step="0.1"></div>
+    <div class="f"><label>Material greu adăugat între verificări <span>kg/m³</span></label><input type="number" id="incAddedKg" value="0" step="1"></div>
+  </div>
+  <div class="hint" style="margin-top:8px">Materialul de îngreunare, tipul de sare și MBT se preiau din secțiunile de mai sus.</div>
+
+  <div class="note" id="incNote"></div>
+  <div class="big" id="incBig"></div>
+  <div class="tw"><table id="tInc"></table></div>
+  <div class="tw" style="margin-top:10px"><table id="tIncCmp"></table></div>
+</div>
+
+<div class="card">
+  <h2>9 · Parametri avansați</h2>
+  <div class="hint">Valorile implicite provin din surse. Modifică doar dacă ai motiv întemeiat.</div>
+  <details><summary>Faza organică și densitatea detritusului</summary><div class="in">
+    <div class="grid">
+      <div class="f"><label>SG ulei / fază organică</label><input type="number" id="rhoOil" value="0.839" step="0.001"></div>
+      <div class="f"><label>SG detritus <span>LGS</span></label><input type="number" id="rhoLGS" value="2.60" step="0.01"></div>
+    </div>
+    <div class="subttl">Fluid de bază — completează SG-ul</div>
+    <div class="seg" id="segOil"></div>
+    <div class="note info" id="oilNote"></div>
+  </div></details>
+  <details><summary>Saramură impusă manual — pentru comparații cu alte programe</summary><div class="in">
+    <div class="grid">
+      <div class="f"><label>SG saramură <span>0 = calculat</span></label><input type="number" id="sgSwManual" value="0" step="0.0001"></div>
+      <div class="f"><label>Volum saramură <span>% · 0 = calculat</span></label><input type="number" id="vBrineManual" value="0" step="0.01"></div>
+      <div class="f"><label>Conversie MBT <span>0 = 5/14 din carte</span></label><input type="number" id="mbtConv" value="0" step="0.0001"></div>
+      <div class="f"><label>σ densitate <span>SG · rezoluție cântar</span></label><input type="number" id="sigmaRho" value="0.005" step="0.001"></div>
+    </div>
+    <div class="note wa">Folosește-le doar ca să reproduci rezultatul altui program și să vezi de unde vine diferența. Valorile calculate din tabelele de densitate la 20 °C sunt cele corecte fizic.</div>
+  </div></details>
+  <details><summary>Na⁺ măsurat — verificare încrucișată, opțional</summary><div class="in">
+    <div class="grid">
+      <div class="f"><label>Na⁺ <span>mg/L · 0 = nemăsurat</span></label><input type="number" id="na" value="0" step="100"></div>
+    </div>
+    <div class="note info">Nu intră în calcul. Dacă îl introduci, se compară cu sodiul dedus din clorurile rămase: o abatere peste 10 % semnalează alți anioni în sistem (carbonat, sulfat, formiat) sau o eroare de analiză.</div>
+  </div></details>
+  <details><summary>Aditivi solizi comerciali — opțional</summary><div class="in">
+    <div class="seg" id="segAdd"></div>
+    <div class="grid">
+      <div class="f"><label>Concentrație <span>kg/m³</span></label><input type="number" id="addKg" value="0" step="1"></div>
+      <div class="f"><label>SG aditivi</label><input type="number" id="addSG" value="1.55" step="0.01"></div>
+    </div>
+    <div class="note wa"><b>Implicit 0, ca în carte.</b><br>
+      Manualul MI-SWACO nu are termen separat pentru aditivi: totul cu gravitate mică intră în LGS la 2,60.<br><br>
+      <b>Nu-l folosi pentru polimeri.</b> Nu există test de șantier care să dea concentrația de polimer din activ, iar polimerul hidratat trece în faza apoasă — nu se comportă ca un solid suspendat. Inventarul se degradează prin diluție, descărcare și degradare termică.<br><br>
+      <b>Folosește-l</b> doar pentru materiale adăugate în cantitate cunoscută, care rămân nedizolvate și pe care le poți contoriza între două verificări: mica și alte LCM granulare, var, gips.</div>
+  </div></details>
+</div>
+
+<div class="card">
+  <h2>10 · Metodologie</h2>
+  <details><summary>Compoziția solidelor — ierarhia completă</summary><div class="in">
+    <div class="eq">SOLIDE DIN RETORTĂ  (tot ce rămâne după evaporare)
+│
+├── SARE CRISTALIZATĂ ── se scade prin corecția de sare
+│                        (era dizolvată, nu e solid suspendat)
+│
+└── SOLIDE CORECTATE ── suspendate real în fluid
+    │
+    ├── HGS  material de îngreunare (barită, CaCO₃, hematit)
+    │
+    └── LGS  solide de gravitate mică
+        ├── bentonită      ─┐ separate prin MBT
+        └── DETRITUS       ─┘ (reactivitate)
+            │
+            ├── fracțiune fină  &lt; 74 µm   (silt + coloidal)
+            └── NISIP           &gt; 74 µm   ← test cu sita 200 mesh</div>
+    <p><b style="color:var(--amber)">Nisipul este o fracțiune granulometrică a detritusului</b>, nu o categorie separată. Testul cu sita măsoară cât din detritus depășește 74 µm. Adăugat ca termen distinct în bilanț ar fi numărat de două ori.</p>
+    <p style="margin-top:8px"><b style="color:var(--amber)">MBT nu este un solid.</b> Este o măsurătoare de capacitate de schimb cationic, exprimată ca echivalent de bentonită. Nu intră în bilanțul volumic — servește doar la separarea LGS în bentonită și detritus.</p>
+    <p style="margin-top:8px">Cele trei mărimi se determină prin proprietăți diferite: <b style="color:var(--amber)">densitatea</b> separă HGS de LGS, <b style="color:var(--amber)">albastrul de metilen</b> separă bentonita de detritus, iar <b style="color:var(--amber)">sita de 200 mesh</b> separă nisipul din detritus după mărime.</p>
+  </div></details>
+  <details><summary>Lanțul de calcul</summary><div class="in">
+    <div class="eq">Ecuațiile fundamentale, p. 9.32
+  V·ρ_noroi = V_HGS·ρ_HGS + V_LGS·ρ_LGS + (V_apă+V_sare)·ρ_SW + V_ulei·ρ_ulei
+  V         = V_HGS + V_LGS + (V_apă+V_sare) + V_ulei = 100 %</div>
+    <div class="eq">SG saramură, p. 9.33 — curbă de ajustare pentru NaCl
+  SG_SW = 1 + 1,166·10⁻⁶·Cl⁻ − 8,375·10⁻¹³·Cl⁻² + 1,338·10⁻¹⁸·Cl⁻³
+  % NaCl (greutate) = Cl⁻ × 1,65 / (SG_SW × 10.000)</div>
+    <div class="eq">Volumul de sare, p. 9.33
+  V_sare = V_apă × [ 100/(SG_SW·(100 − %sare)) − 1 ]</div>
+    <div class="eq">Materialul greu, p. 9.34
+  V_HGS = [100·ρ_noroi − (100−V_apă−V_sare−V_ulei)·ρ_LGS
+           − (V_sare+V_apă)·ρ_SW − V_ulei·ρ_ulei] / (ρ_HGS − ρ_LGS)
+  V_LGS = 100 − V_apă − V_sare − V_ulei − V_HGS</div>
+    <div class="eq">Bentonită și detritus, p. 9.34–9.35
+  V_LGS = V_BENT + V_DS        MBT = V_BENT + F·V_DS
+  Bent (lb/bbl) = [MBT − F·LGS(lb/bbl)] / (1 − F)
+  V_BENT = Bent(lb/bbl) / (2,60 × 3,5049)
+  V_DS   = V_LGS − V_BENT      raport DS/bentonită = V_DS / V_BENT
+  F = CEC detritus / CEC bentonită ; implicit 1/9 = 0,1111</div>
+    <div class="eq">Reactivitatea reală, fără ipoteze
+  F implicit   = MBT(lb/bbl) / LGS(lb/bbl)
+  CEC implicit = F implicit × 65 meq/100 g</div>
+    <div class="eq">Weight-up, Cap. 9
+  kg/m³ = SG_material × 1000 × (ρ₂ − ρ₁)/(SG_material − ρ₂)</div>
+    <div class="eq">Factori de conversie
+  vol% → lb/bbl : SG × 8,345 lb/gal × 42 gal/bbl / 100 = SG × 3,50490
+  MBT kg/m³ → lb/bbl : × 5/14 = 0,357143
+    (formulele MBC din p. 3.14 dau lb/bbl = R×5 și kg/m³ = R×14)</div>
+  </div></details>
+  <details><summary>Repartiția clorului și densitatea saramurii</summary><div class="in">
+    <div class="eq">Alocarea clorului — baza mixtă
+  Clorul se alocă în ordine cationilor măsurați: K⁺, Ca²⁺, Mg²⁺.
+  Restul revine sodiului.
+
+  Cl⁻ necesar unui cation ține cont de VALENȚĂ:
+    Cl⁻ = cation × valență × 35,45 / masă atomică
+    K⁺   valență 1 → × 0,9066
+    Ca²⁺ valență 2 → × 1,7690      Mg²⁺ valență 2 → × 2,9165
+
+  Sărurile rezultate: KCl, CaCl₂, MgCl₂, NaCl — se numără total.</div>
+    <div class="eq">SG saramurii — din tabele de densitate măsurate la 20 °C
+
+  NU se calculează din volumele cristaline ale sărurilor.
+  Sarea dizolvată nu ocupă volumul cristalului: ionii se așază
+  între moleculele de apă. Pentru KCl la 7 % greutate, volumul
+  ocupat corespunde unei densități aparente de 2,46 g/cm³,
+  față de 1,984 g/cm³ cât are cristalul.
+
+  Folosirea densității cristaline subestimează SG-ul saramurii
+  cu circa 0,007 și deplasează întregul bilanț masic.
+
+  Saturație la 20 °C: NaCl 26,4 % · KCl 25,5 % (greutate)</div>
+  </div></details>
+  <details open><summary>Cât de sigur este rezultatul</summary><div class="in">
+    <div class="eq">V_HGS = V_solide × (SG_mediu − ρ_LGS) / (ρ_HGS − ρ_LGS)
+
+O eroare σ la densitatea noroiului se propagă direct:
+
+    σ_HGS = 100 × σ_ρ / (ρ_HGS − ρ_LGS)
+
+Numitorul este fereastra de densitate dintre cele două materiale.</div>
+    <div class="eq">Cu σ_ρ = 0,005 SG (rezoluția uzuală a cântarului):
+
+  hematit  5,00 − 2,60 = 2,40  →  σ_HGS = ± 0,21 % vol   fermă
+  barită   4,20 − 2,60 = 1,60  →  σ_HGS = ± 0,31 % vol   fermă
+  LO-WATE  2,80 − 2,60 = 0,20  →  σ_HGS = ± 2,50 % vol   nefiabilă
+  CaCO₃    2,70 − 2,60 = 0,10  →  σ_HGS = ± 5,00 % vol   nefiabilă</div>
+    <p>Pentru barită și hematit, împărțirea prin densitate este solidă. Pentru carbonat de calciu, incertitudinea depășește de câteva ori rezultatul însuși — nu pentru că formula ar fi greșită, ci pentru că măsurătoarea nu conține informația necesară.</p>
+    <p style="margin-top:8px"><b style="color:var(--amber)">Singura cale independentă</b> este inventarul: kilogramele de material greu pompate, împărțite la volumul activ. Introdu valoarea în secțiunea 1 și programul o compară cu rezultatul din densitate, raportat la incertitudine.</p>
+    <p style="margin-top:8px">Când cele două concordă în limita lui σ, ai confirmare. Când diferă mai mult, una dintre măsurători trebuie reverificată — iar la CaCO₃, inventarul este de regulă cel mai de încredere.</p>
+  </div></details>
+  <details><summary>Metoda incrementală — cum ocolește fereastra îngustă</summary><div class="in">
+    <div class="eq">La un punct de REFERINȚĂ unde LGS este cunoscut (de regulă 0):
+
+  HGS₀ = solide₀ − LGS₀        ← EXACT, nicio împărțire de făcut
+
+La verificarea URMĂTOARE, orice material adăugat se cunoaște din
+inventar; restul creșterii de solide este, prin excludere, detritus:
+
+  HGS₁ = HGS₀ + (material adăugat, din inventar)
+  LGS₁ = solide₁ − HGS₁        ← se SCADE, nu se împarte</div>
+    <div class="eq">Incertitudinea nu mai vine din 1/(ρ_HGS − ρ_LGS):
+
+  σ_HGS clasic      = 100·σ_ρ / fereastră    ← amplificat la fereastră îngustă
+  σ_HGS incremental = σ_retortă               ← independent de fereastră</div>
+    <p>Pentru un material de îngreunare cu densitate apropiată de a detritusului — cazul carbonatului de calciu — metoda clasică poate avea o incertitudine mai mare decât rezultatul însuși. Metoda incrementală nu suferă de această problemă, pentru că nu mai desparte nimic prin densitate: doar scade un increment cunoscut.</p>
+    <p style="margin-top:8px"><b style="color:var(--amber)">Prețul plătit:</b> depinde de cât de sigură e ipoteza de referință (LGS₀ cunoscut) și de cât de bine e ținută evidența materialului adăugat între verificări. Testat pe fereastră largă (barită), metoda incrementală și cea clasică converg — confirmare că formula e coerentă, nu doar o presupunere convenabilă.</p>
+    <p style="margin-top:8px">Verificarea de consistență: programul recalculează ce densitate ar rezulta din split-ul incremental și o compară cu cea măsurată. O diferență mare înseamnă că ipoteza de referință sau evidența materialului trebuie reverificate.</p>
+  </div></details>
+  <details><summary>Cele două separări: prin densitate și prin reactivitate</summary><div class="in">
+    <div class="eq">SEPARAREA 1 — prin DENSITATE (bilanț masic)
+  solide totale ──► HGS  (material de îngreunare)
+                └─► LGS  (solide de gravitate mică)
+
+  Precizia depinde de ρ_HGS − ρ_LGS:
+    barită   4,20 − 2,60 = 1,60  →  separare fermă
+    hematit  5,00 − 2,60 = 2,40  →  separare fermă
+    CaCO₃    2,70 − 2,60 = 0,10  →  separare fragilă</div>
+    <div class="eq">SEPARAREA 2 — prin REACTIVITATE (albastru de metilen)
+  LGS ──► bentonită   (argilă comercială, CEC ~65 meq/100 g)
+      └─► DS          (detritus de foraj, CEC mult mai mic)
+
+  Nu are legătură cu densitatea: bentonita și detritusul au
+  amândouă ~2,60. Se deosebesc doar prin capacitatea de
+  schimb cationic, măsurată cu MBT.</div>
+    <p><b style="color:var(--amber)">De ce poate ieși DS = LGS.</b> Dacă împărțirea e dezactivată sau bentonita rezultă zero, LGS este format exclusiv din detritus. Nu este o eroare de calcul, ci definiția: LGS = bentonită + DS.</p>
+    <p style="margin-top:8px"><b style="color:var(--amber)">Capcana formulei.</b> Formula presupune că detritusul are reactivitatea fixă F. Ce iese ca „bentonită" este surplusul de MBT peste această ipoteză. Într-un fluid fără bentonită adăugată, surplusul înseamnă detritus mai reactiv decât presupune F.</p>
+    <p style="margin-top:8px"><b style="color:var(--amber)">Ce se măsoară în schimb.</b> Raportul MBT / LGS dă reactivitatea reală a solidelor de gravitate mică, fără nicio ipoteză. Înmulțit cu CEC-ul bentonitei comerciale rezultă CEC-ul implicit al detritusului.</p>
+    <p style="margin-top:8px"><b style="color:var(--amber)">Notă despre CaCO₃.</b> Carbonatul de calciu nu adsoarbe albastru de metilen, exact ca barita. MBT-ul nu îl poate deosebi de un detritus inert — separarea HGS/LGS rămâne exclusiv în sarcina densității.</p>
+  </div></details>
+  <details><summary>Densități de referință</summary><div class="in">
+    <p>Barită M-I BAR <b style="color:var(--amber)">4,20</b> · Hematit FER-OX <b style="color:var(--amber)">5,00</b> · Ironite sponge <b style="color:var(--amber)">4,30</b> · Carbonat de calciu <b style="color:var(--amber)">2,70</b> (Mixical, BARACARB, W.O.30) · LO-WATE <b style="color:var(--amber)">2,80</b></p>
+    <p style="margin-top:6px">Detritus (LGS) <b style="color:var(--amber)">2,60</b> (21,7 lb/gal) · Ulei <b style="color:var(--amber)">0,839</b> (7 lb/gal) — valorile din exemplul rezolvat al cărții.</p>
+    <p style="margin-top:6px">Fluide de bază, Baker p. 3-3: motorină 0,840 · ESCAID 110 0,790 · LVT 200 0,806 · HDF 200 0,814 · ISO-TEQ 0,792 · PARA-TEQ 0,765 · PAO 6 cSt 0,797 · ester 0,850</p>
+    <p style="margin-top:6px">Aditivi solizi, MI-SWACO p. 3.66: amidon 1,45 · xanthan 1,50 · PAC/CMC 1,55–1,60 · lignit 1,65 · var 2,20 · gips 2,32 · mica 2,75</p>
+  </div></details>
+  <details><summary>Validare</summary><div class="in">
+    <p><b style="color:var(--amber)">Exemplul rezolvat p. 9.32–9.34</b> — 16 lb/gal, Cl 50.000, barită: V_sare 1,69 · HGS 25,41 % · LGS 4,90 % · HGS 373,5 lb/bbl · NaCl 18,68 lb/bbl, plus recompunerea densității din tabelul cărții.</p>
+    <p style="margin-top:6px"><b style="color:var(--amber)">Exemplul bentonitei p. 9.34–9.35</b> — MBT 25 lb/bbl, CEC 19,5, F 0,30: bentonită 16,6 lb/bbl · 1,82 % · DS 3,08 % · 28,1 lb/bbl · raport 1,69.</p>
+    <p style="margin-top:6px"><b style="color:var(--amber)">Exemplul neîngreunat p. 9.32</b> — 9,2 lb/gal → 6,4 % și 1,10 SG → 6,25 %.</p>
+    <p style="margin-top:6px"><b style="color:var(--amber)">Verificări independente</b> — volumul de sare confruntat cu derivarea fizică; weight-up cu simularea adăugării materialului; bilanțul de sarcini închis la zero; conservarea masei și volumului pe sute de combinații; valorile aberante respinse fără cifre absurde.</p>
+  </div></details>
+</div>
+</main>
+<footer>Analiza Solidelor · Drilling Field Handbook<br>MI-SWACO Engineering Drilling Fluids Manual, Cap. 9</footer>
+<script>
+/* ============================================================
+   ANALIZA SOLIDELOR - motor de calcul
+   Strict pe MI-SWACO Engineering Drilling Fluids Manual,
+   Cap. 9 "Engineering Calculations", p. 9.31-9.35
+   Ecuatiile fundamentale (p. 9.32):
+     V_noroi·ro_noroi = V_HGS·ro_HGS + V_LGS·ro_LGS
+                        + (V_apa+V_sare)·ro_SW + V_ulei·ro_ulei
+     V_noroi = V_HGS + V_LGS + (V_apa+V_sare) + V_ulei = 100 %
+   ============================================================ */
+/* --- SG saramura din cloruri: curve fit NaCl, p.9.33 --- */
+const sgFromCl = cl => 1 + 1.166e-6*cl - 8.375e-13*cl*cl + 1.338e-18*cl*cl*cl;
+/* --- extensie pentru sisteme KCl: tabel densitate 20 C --- */
+const TBL_KCL = [[0,1.0000],[1,1.0046],[2,1.0110],[4,1.0239],[6,1.0369],[8,1.0500],
+  [10,1.0633],[12,1.0768],[14,1.0905],[16,1.1043],[18,1.1185],[20,1.1328],[22,1.1474],[24,1.1623]];
+function interp(t,w){
+  if(w<=0) return 1;
+  const L=t[t.length-1];
+  if(w>=L[0]){ const p=t[t.length-2]; return L[1]+(L[1]-p[1])/(L[0]-p[0])*(w-L[0]); }
+  for(let i=1;i<t.length;i++) if(w<=t[i][0]){
+    const a=t[i-1],b=t[i]; return a[1]+(b[1]-a[1])*(w-a[0])/(b[0]-a[0]); }
+  return 1;
+}
+const TBL_NACL = [[0,1.0000],[1,1.0053],[2,1.0125],[4,1.0268],[6,1.0413],[8,1.0559],
+  [10,1.0707],[12,1.0857],[14,1.1009],[16,1.1162],[18,1.1319],[20,1.1478],
+  [22,1.1640],[24,1.1804],[26,1.1972],[26.4,1.2006]];
+const TBL_CACL2 = [[0,1.0000],[2,1.0148],[4,1.0316],[6,1.0486],[8,1.0659],[10,1.0835],
+  [15,1.1292],[20,1.1775],[25,1.2284],[30,1.2816],[35,1.3373]];
+const TBL_MGCL2 = [[0,1.0000],[2,1.0148],[4,1.0311],[6,1.0476],[8,1.0645],[10,1.0816],
+  [15,1.1254],[20,1.1706],[25,1.2174],[30,1.2660]];
+const sgKCl  = w => interp(TBL_KCL,w);
+const sgNaClT= w => interp(TBL_NACL,w);
+const sgCaCl2= w => interp(TBL_CACL2,w);
+const sgMgCl2= w => interp(TBL_MGCL2,w);
+/* cationi: masa atomica, valenta, sarea corespunzatoare
+   Cl- necesar = mg/L x valenta x 35.45 / masa atomica   <- VALENTA conteaza */
+const CATIONI = {
+  K:  { M:39.10, z:1, salt:'KCl',   Msalt:74.55,  sgFn:null },
+  Ca: { M:40.08, z:2, salt:'CaCl2', Msalt:110.98, sgFn:null },
+  Mg: { M:24.31, z:2, salt:'MgCl2', Msalt:95.21,  sgFn:null },
+  Na: { M:22.99, z:1, salt:'NaCl',  Msalt:58.44,  sgFn:null }
+};
+CATIONI.K.sgFn=sgKCl; CATIONI.Ca.sgFn=sgCaCl2; CATIONI.Mg.sgFn=sgMgCl2; CATIONI.Na.sgFn=sgNaClT;
+const R_K_TO_KCL   = 74.55/39.10;   // 1.90665  K+  -> KCl
+const R_K_TO_CL    = 35.45/39.10;   // 0.90665  K+  -> Cl- adus de KCl
+const R_CL_TO_NACL = 58.44/35.45;   // 1.64852  Cl- -> NaCl
+const R_CL_TO_KCL  = 74.55/35.45;   // 2.10296  Cl- -> KCl
+const R_NACL_TO_NA = 22.99/58.44;   // 0.39339  NaCl -> Na+
+const R_NA_TO_CL   = 35.45/22.99;   // 1.54198  Na+  -> Cl- necesar
+/* echivalenti: meq/L = mg/L / masa echivalenta */
+const EQ = { K:39.10, Na:22.99, Cl:35.45 };
+/* ---- factori de conversie ----
+   vol% -> lb/bbl : SG x 8,345 lb/gal x 42 gal/bbl / 100
+   MBT kg/m3 -> lb/bbl : formulele MBC din carte, p.3.14, dau
+     lb/bbl = R x 5  si  kg/m3 = R x 14, deci raportul este 5/14.
+     Conversia trebuie facuta cu acest raport pentru a fi coerenta
+     cu modul in care laboratorul raporteaza valoarea. */
+const LB_BBL_PER_VOLPCT = 8.345*42/100;    // 3.50490 per unitate de SG
+const MBT_KGM3_TO_LBBBL = 5/14;            // 0.357143
+const SG_BENT = 2.60;                      // bentonita comerciala
+/* limite de saturatie la 20 C, % greutate */
+const SAT = { NaCl:26.4, KCl:25.5, total:26.4 };
+/* materiale de ingreunare - SG din surse */
+const MAT = {
+  barite:  { nume:'Barită (M-I BAR)',        sg:4.20, sursa:'MI-SWACO, tabel produse · API 13A' },
+  hematite:{ nume:'Hematit (FER-OX)',        sg:5.00, sursa:'MI-SWACO, Cap. 15' },
+  ironite: { nume:'Ironite sponge',          sg:4.30, sursa:'MI-SWACO, tabel produse' },
+  caco3:   { nume:'Carbonat de calciu',      sg:2.70, sursa:'Mixical 2,70 · BARACARB 2,70 · W.O.30 22,5 lb/gal' },
+  lowate:  { nume:'CaCO₃ tip LO-WATE',       sg:2.80, sursa:'MI-SWACO, tabel produse' }
+};
+/* aditivi solizi de gravitate mica, SG din tabelul MI-SWACO p.3.66.
+   Sunt solide comerciale care NU sunt nici bentonita, nici detritus,
+   si care au densitate diferita de 2,60 presupus pentru LGS. */
+const ADITIVI = {
+  polimer:  { nume:'Polimeri (PAC, CMC, xanthan)', sg:1.55, sursa:'MI-SWACO p.3.66: CMC 1,60 · POLYPAC 1,55 · DUO-VIS 1,50' },
+  amidon:   { nume:'Amidon',                        sg:1.45, sursa:'MI-SWACO p.3.66: MY-LO-JEL 1,45' },
+  lignit:   { nume:'Lignit / rășini',               sg:1.65, sursa:'MI-SWACO p.3.66: RESINEX 1,65' },
+  var:      { nume:'Var',                           sg:2.20, sursa:'MI-SWACO p.3.66: Lime 2,20' },
+  gips:     { nume:'Gips',                          sg:2.32, sursa:'MI-SWACO p.3.66: Gypsum 2,32' },
+  mica:     { nume:'Mica (LCM)',                    sg:2.75, sursa:'MI-SWACO p.3.66: Mica 2,75' }
+};
+/* fluide de baza - SG din Baker, tabel p. 3-3 */
+const OILS = {
+  diesel:  { nume:'Motorină',            sg:0.840, sursa:'Baker p. 3-3 (15 °C)' },
+  escaid:  { nume:'ESCAID 110',          sg:0.790, sursa:'Baker p. 3-3' },
+  lvt:     { nume:'LVT 200',             sg:0.806, sursa:'Baker p. 3-3' },
+  hdf:     { nume:'HDF 200',             sg:0.814, sursa:'Baker p. 3-3' },
+  isoteq:  { nume:'ISO-TEQ',             sg:0.792, sursa:'Baker p. 3-3' },
+  parateq: { nume:'PARA-TEQ',            sg:0.765, sursa:'Baker p. 3-3' },
+  pao:     { nume:'PAO 6 cSt',           sg:0.797, sursa:'Baker p. 3-3' },
+  ester:   { nume:'Ester',               sg:0.850, sursa:'Baker p. 3-3' },
+  carte:   { nume:'Valoarea din exemplu',sg:0.839, sursa:'MI-SWACO p. 9.33 (7 lb/gal)' }
+};
+const LIM = { rhoMud:[0.90,4.00], vWater:[0,100], vOil:[0,100], sand:[0,20],
+              rhoOil:[0.60,1.10], rhoHGS:[1.50,6.00], rhoLGS:[1.50,3.50],
+              mbt:[0,300], cl:[0,300000], k:[0,300000] };
+/* ------------------------------------------------------------
+   brineProps - SG saramura si % sare TOTALA (greutate)
+   basis:
+     'nacl'  - formula MI-SWACO p.9.33, curba de ajustare pe Cl- (numai NaCl)
+     'kcl'   - numai KCl, din K+
+     'mixed' - PRACTICA DE SANTIER: KCl din K+, NaCl din clorurile ramase.
+               Sarurile se numara TOTAL. Densitatea saramurii se obtine
+               insumand excesele de densitate ale celor doua saruri.
+     'none'  - fara sare
+------------------------------------------------------------ */
+function brineProps(basis, Cl, K, naMeas, ca, mg){
+  Cl=Math.max(Cl||0,0); K=Math.max(K||0,0); naMeas=Math.max(naMeas||0,0);
+  const warn=[];
+  const gol = { sg:1, wt:0, sare:0, KCl:0, NaCl:0, CaCl2:0, MgCl2:0, Na:0,
+                wKCl:0, wNaCl:0, wCaCl2:0, wMgCl2:0, warn,
+                meq:{K:0,Ca:0,Mg:0,Na:0,Cl:0,cationi:0,anioni:0,dif:0},
+                clDinKCl:0, clDinCaCl2:0, clDinMgCl2:0, clLiber:0,
+                eticheta:'fără sare' };
+  if(basis==='none') return gol;
+  if(basis==='nacl'){
+    const sg=sgFromCl(Cl), wt=Cl*1.65/(sg*10000);
+    if(wt>SAT.NaCl) warn.push({t:'warn',m:`NaCl ${wt.toFixed(1)} % depășește saturația (~${SAT.NaCl} % la 20 °C) — fluid saturat cu sare nedizolvată, sau clorurile sunt eronate.`});
+    const na=Cl*1.65*R_NACL_TO_NA;
+    return { sg, wt, sare:Cl*1.65, KCl:0, NaCl:Cl*1.65, Na:na, wKCl:0, wNaCl:wt, warn,
+             meq:{K:0,Na:na/EQ.Na,Cl:Cl/EQ.Cl,cationi:na/EQ.Na,anioni:Cl/EQ.Cl,dif:na/EQ.Na-Cl/EQ.Cl},
+             clDinKCl:0, clLiber:Cl,
+             eticheta:'NaCl din Cl⁻ (formula MI-SWACO p. 9.33)' };
+  }
+  if(basis==='kcl'){
+    const kcl=K*R_K_TO_KCL;
+    if(kcl<=0) return Object.assign({},gol,{eticheta:'KCl (K⁺ = 0)'});
+    let sg=1.05,prev=0,it=0;
+    while(Math.abs(sg-prev)>1e-10 && it<300){ prev=sg; sg=sgKCl(kcl/(sg*10000)); it++; }
+    const wt=kcl/(sg*10000);
+    if(wt>SAT.KCl) warn.push({t:'warn',m:`KCl ${wt.toFixed(1)} % depășește saturația (~${SAT.KCl} % la 20 °C).`});
+    return { sg, wt, sare:kcl, KCl:kcl, NaCl:0, Na:0, wKCl:wt, wNaCl:0, warn,
+             meq:{K:K/EQ.K,Na:0,Cl:K*R_K_TO_CL/EQ.Cl,cationi:K/EQ.K,anioni:K*R_K_TO_CL/EQ.Cl,dif:0},
+             clDinKCl:K*R_K_TO_CL, clLiber:0, eticheta:'KCl din K⁺' };
+  }
+  /* --- MIXT: sarurile totale, cu alocarea clorului pe toti cationii ---
+     Clorul se aloca in ordine: K+, Ca2+, Mg2+, iar restul revine Na+.
+     Cl- necesar fiecarui cation tine cont de VALENTA:
+       Cl-(mg/L) = cation(mg/L) x valenta x 35.45 / masa atomica          */
+  const cat = { K:K, Ca:Math.max(ca||0,0), Mg:Math.max(mg||0,0) };
+  const clNec = {}, sare = {};
+  let clAlocat = 0;
+  ['K','Ca','Mg'].forEach(x=>{
+    const c = CATIONI[x];
+    clNec[x] = cat[x]*c.z*35.45/c.M;
+    clAlocat += clNec[x];
+  });
+  if(clAlocat>0 && Cl<=0){
+    warn.push({t:'err',m:`Sunt raportați cationi (K⁺, Ca²⁺, Mg²⁺) dar Cl⁻ = 0. Pentru a-i echilibra ar fi nevoie de ${clAlocat.toFixed(0)} mg/L Cl⁻ — analizele sunt incompatibile.`});
+    return Object.assign({},gol,{eticheta:'analize incompatibile'});
+  }
+  let factor = 1, clNa = 0;
+  if(Cl >= clAlocat){
+    clNa = Cl - clAlocat;
+  } else {
+    factor = clAlocat>0 ? Cl/clAlocat : 0;
+    warn.push({t:'warn',m:`Cl⁻ (${Cl.toFixed(0)}) este sub necesarul cationilor măsurați (${clAlocat.toFixed(0)} mg/L). Sărurile au fost limitate proporțional; restul cationilor provine din alți anioni — hidroxid, carbonat, sulfat sau formiat.`});
+  }
+  ['K','Ca','Mg'].forEach(x=>{
+    const c = CATIONI[x];
+    sare[x] = cat[x]*factor*c.Msalt/(c.M);   // 1 mol cation -> 1 mol sare
+  });
+  sare.Na = clNa*R_CL_TO_NACL;
+  const na = sare.Na*R_NACL_TO_NA;
+  const tds = sare.K+sare.Ca+sare.Mg+sare.Na;
+  if(tds<=0) return Object.assign({},gol,{eticheta:'mixt (fără săruri)'});
+  /* SG saramurii: excesele de densitate ale sarurilor se insumeaza, iterativ.
+     Se folosesc tabele de densitate masurate la 20 C, NU volume cristaline. */
+  let sg=1.05,prev=0,it=0;
+  while(Math.abs(sg-prev)>1e-10 && it<300){
+    prev=sg;
+    sg = 1 + (sgKCl(sare.K/(sg*10000))-1) + (sgCaCl2(sare.Ca/(sg*10000))-1)
+           + (sgMgCl2(sare.Mg/(sg*10000))-1) + (sgNaClT(sare.Na/(sg*10000))-1);
+    it++;
+  }
+  const wKCl=sare.K/(sg*10000), wNaCl=sare.Na/(sg*10000);
+  const wCaCl2=sare.Ca/(sg*10000), wMgCl2=sare.Mg/(sg*10000);
+  const wt=tds/(sg*10000);
+  if(wKCl>SAT.KCl)  warn.push({t:'warn',m:`KCl ${wKCl.toFixed(1)} % depășește saturația (~${SAT.KCl} %).`});
+  if(wNaCl>SAT.NaCl)warn.push({t:'warn',m:`NaCl ${wNaCl.toFixed(1)} % depășește saturația (~${SAT.NaCl} %).`});
+  if(wt>SAT.total)  warn.push({t:'warn',m:`Săruri totale ${wt.toFixed(1)} % — fluid la saturație sau peste. Sarea nedizolvată ar fi raportată de retortă ca solid.`});
+  /* bilant de sarcini, meq/L */
+  const meq = { K:K/CATIONI.K.M, Ca:cat.Ca*2/CATIONI.Ca.M, Mg:cat.Mg*2/CATIONI.Mg.M,
+                Na:na/CATIONI.Na.M, Cl:Cl/35.45 };
+  meq.cationi = meq.K+meq.Ca+meq.Mg+meq.Na;
+  meq.anioni  = meq.Cl;
+  meq.dif     = meq.cationi-meq.anioni;
+  if(naMeas>0){
+    const abatere=Math.abs(naMeas-na)/Math.max(na,1);
+    if(abatere>0.10){
+      warn.push({t:'warn',m: naMeas>na
+        ? `Na⁺ măsurat ${(naMeas/1000).toFixed(2)} kg/m³ depășește pe cel dedus din clorurile rămase ${(na/1000).toFixed(2)} kg/m³. Diferența indică alți anioni în sistem — carbonat, sulfat, formiat sau hidroxid.`
+        : `Na⁺ măsurat ${(naMeas/1000).toFixed(2)} kg/m³ este sub cel dedus ${(na/1000).toFixed(2)} kg/m³. Verifică analizele de cloruri și cationi.`});
+    }
+  }
+  return { sg, wt, sare:tds, KCl:sare.K, NaCl:sare.Na, CaCl2:sare.Ca, MgCl2:sare.Mg,
+           Na:na, wKCl, wNaCl, wCaCl2, wMgCl2, warn, meq,
+           clDinKCl:clNec.K*factor, clDinCaCl2:clNec.Ca*factor, clDinMgCl2:clNec.Mg*factor,
+           clLiber:clNa,
+           eticheta:'mixt — Cl⁻ alocat pe K⁺, Ca²⁺, Mg²⁺, restul Na⁺' };
+}
+/* ------------------------------------------------------------
+   saltVolume - p.9.33
+   V_sare = V_apa · [ 100/(SG_sar·(100 - %sare)) - 1 ]
+------------------------------------------------------------ */
+function saltVolume(vWater, sg, wt){
+  if(wt<=0 || sg<=1) return 0;
+  return vWater*(100/(sg*(100-wt)) - 1);
+}
+/* ------------------------------------------------------------
+   weightUp - Cap.9:  kg/m3 = SG·1000·(ro2-ro1)/(SG-ro2)
+------------------------------------------------------------ */
+function weightUp(r1,r2,sgMat){
+  if(r2<=r1) return { kg:0, volPct:0 };
+  if(r2>=sgMat) return { kg:Infinity, volPct:Infinity, err:'Densitatea țintă depășește SG-ul materialului.' };
+  const kg=sgMat*1000*(r2-r1)/(sgMat-r2);
+  return { kg, volPct:kg/(sgMat*10) };
+}
+function validate(i){
+  const w=[];
+  const rng=(k,lbl,u)=>{ const L=LIM[k]; if(L && (i[k]<L[0]||i[k]>L[1]))
+    w.push({t:'err',m:`${lbl} = ${i[k]}${u||''} — în afara domeniului fizic (${L[0]}–${L[1]}).`}); };
+  rng('rhoMud','Densitatea noroiului',' SG');
+  rng('rhoOil','SG ulei'); rng('rhoHGS','SG material greu'); rng('rhoLGS','SG detritus');
+  rng('mbt','MBT',' kg/m³'); rng('sand','Nisip',' %'); rng('cl','Cloruri',' mg/L'); rng('k','K⁺',' mg/L');
+  if(i.vWater<0||i.vWater>100) w.push({t:'err',m:`Retort apă = ${i.vWater} % — în afara 0–100.`});
+  if(i.vOil<0||i.vOil>100)     w.push({t:'err',m:`Retort ulei = ${i.vOil} % — în afara 0–100.`});
+  if(i.vWater+i.vOil>100)      w.push({t:'err',m:`Retorta: apă + ulei = ${(i.vWater+i.vOil).toFixed(1)} % > 100 %.`});
+  if(i.rhoHGS<=i.rhoLGS)       w.push({t:'err',m:'SG-ul materialului greu trebuie să depășească SG-ul detritusului.'});
+  return w;
+}
+/* ------------------------------------------------------------
+   analyze - analiza completa, metoda cartii
+------------------------------------------------------------ */
+function analyze(inp){
+  const { rhoMud, vWater, vOil, rhoOil, cl, k, na, ca, mg, saltBasis,
+          rhoHGS, rhoLGS, mbt, sand, hasBentonite, fBent } = inp;
+  const addKg = Math.max(inp.addKg||0,0);          // aditivi solizi, kg/m3
+  const addSG = inp.addSG>0 ? inp.addSG : 1.55;    // SG implicit: polimeri
+  const cecBentRef = inp.cecBent>0 ? inp.cecBent : 65;   // CEC bentonita comerciala, meq/100 g
+  const warn = validate(inp);
+  const fatal = warn.some(x=>x.t==='err');
+  const br = brineProps(saltBasis, cl, k, na, ca, mg);
+  /* suprascriere manuala a SG-ului saramurii, pentru comparatii cu alte programe.
+     0 sau absent = se foloseste valoarea calculata din tabele. */
+  if(inp.sgSwManual>0){
+    br.sgCalculat = br.sg;
+    br.sg = inp.sgSwManual;
+    br.wt = br.sare/(br.sg*10000);
+    br.eticheta += ' · SG impus manual';
+    warn.push({t:'info',m:`SG saramură impus manual: <b>${br.sg.toFixed(5)}</b> în locul valorii calculate din tabele (${br.sgCalculat.toFixed(5)}). Se folosește doar pentru comparații cu alte programe.`});
+  }
+  if(br.warn) br.warn.forEach(x=>warn.push(x));
+  let vSalt = saltVolume(vWater, br.sg, br.wt);
+  /* suprascriere manuala a volumului de saramura, pentru comparatii */
+  if(inp.vBrineManual>0){
+    vSalt = inp.vBrineManual - vWater;
+    warn.push({t:'info',m:`Volum saramură impus manual: <b>${inp.vBrineManual.toFixed(2)} %</b> (volum de sare rezultat ${vSalt.toFixed(3)} %, față de ${saltVolume(vWater,br.sg,br.wt).toFixed(3)} % calculat). Se folosește doar pentru comparații cu alte programe.`});
+  }
+  const vBrine = vWater + vSalt;
+  const vSolids = 100 - vOil - vBrine;
+  const massSolids = 100*rhoMud - vBrine*br.sg - vOil*rhoOil;
+  const sgAvg = vSolids>1e-9 ? massSolids/vSolids : null;
+  /* SG mediu al solidelor RAMASE dupa scaderea aditivilor - acesta trebuie
+     sa cada intre ro_LGS si ro_HGS pentru ca impartirea sa fie posibila */
+  const vSolHL  = vSolids - (addKg>0&&addSG>0 ? addKg/(addSG*10) : 0);
+  const massHL  = massSolids - (addKg>0&&addSG>0 ? (addKg/(addSG*10))*addSG : 0);
+  const sgAvgHL = vSolHL>1e-9 ? massHL/vSolHL : null;
+  /* --- aditivi solizi comerciali, componenta separata ---
+     LGS presupune SG 2,60. Polimerii, amidonul, lignitul au 1,45-1,65,
+     iar varul si gipsul 2,20-2,32. Daca sunt inclusi in LGS li se atribuie
+     o masa pe care nu o au. Se trateaza ca al patrulea component solid,
+     cu volumul dedus din inventar: V = kg/m3 / (SG x 10). */
+  const vAdd = (addKg>0 && addSG>0) ? addKg/(addSG*10) : 0;
+  if(addKg>0 && addSG<=0)
+    warn.push({t:'err',m:'Aditivii solizi au concentrație dar SG-ul lipsește.'});
+  /* p.9.34 - ecuatia pentru V_HGS, extinsa cu aditivii */
+  const vHGSraw = (rhoHGS!==rhoLGS)
+    ? (100*rhoMud - (100-vWater-vSalt-vOil-vAdd)*rhoLGS - (vSalt+vWater)*br.sg
+       - vOil*rhoOil - vAdd*addSG)/(rhoHGS-rhoLGS)
+    : null;
+  const vLGSraw = vHGSraw===null ? null : 100 - vWater - vSalt - vOil - vAdd - vHGSraw;
+  /* --- coerenta fizica ---
+     Verificarea SG-mediu-in-fereastra are sens doar daca fereastra insasi
+     e valida (rhoHGS > rhoLGS). Daca acea premisa e deja respinsa la
+     validate(), nu mai adaugam un al doilea mesaj derivat dintr-o premisa
+     gresita - ar fi confuz sa arati doua erori pentru aceeasi cauza. */
+  let physical = true;
+  const fereastraValida = rhoHGS > rhoLGS;
+  if(vSolids < -0.005){ physical=false;
+    warn.push({t:'err',m:`Solide negative (${vSolids.toFixed(2)} %) — corecția de sare depășește solidele din retortă.`}); }
+  else if(!fereastraValida){ physical=false; }
+  else if(vSolHL > 0.01 && sgAvgHL!==null){
+    const sgAvg = sgAvgHL;
+    if(sgAvg < rhoLGS-0.0005){ physical=false;
+      warn.push({t:'err',m:`SG mediu al solidelor = ${sgAvg.toFixed(4)}, sub SG-ul detritusului (${rhoLGS.toFixed(2)}). Densitatea măsurată este prea mică pentru retorta dată — nicio combinație de material greu și detritus nu poate da acest rezultat.`}); }
+    else if(sgAvg > rhoHGS+0.0005){ physical=false;
+      warn.push({t:'err',m:`SG mediu al solidelor = ${sgAvg.toFixed(4)}, peste SG-ul materialului greu (${rhoHGS.toFixed(2)}). Densitatea este prea mare pentru retorta dată, sau materialul de îngreunare este altul.`}); }
+  }
+  const valid = !fatal && physical && vHGSraw!==null && vHGSraw>=-0.005 && vLGSraw>=-0.005;
+  const vHGS = valid ? vHGSraw : null;
+  const vLGS = valid ? vLGSraw : null;
+  /* --- bentonita si detritus, p.9.34-9.35 ---
+     V_LGS = V_BENT + V_DS        MBT = V_BENT + F x V_DS
+     Bentonita(lb/bbl) = [MBT - F x LGS(lb/bbl)] / (1 - F)
+     F = CEC detritus / CEC bentonita ; implicit 1/9 (carte)
+     ATENTIE la interpretare: formula presupune ca detritusul are
+     reactivitatea fixa F. Ce iese ca "bentonita" este de fapt
+     surplusul de MBT peste aceasta ipoteza. Daca in sistem NU s-a
+     adaugat bentonita, surplusul inseamna detritus mai reactiv
+     decat presupune F, nu bentonita reala. */
+  const F = (fBent && fBent>0 && fBent<1) ? fBent : (1/9);
+  const mbtConv = (inp.mbtConv>0) ? inp.mbtConv : MBT_KGM3_TO_LBBBL;
+  const mbtLb = mbt*mbtConv;
+  let vBent=null, vDS=null, bentLb=null, lgsLb=null, dsLb=null;
+  let fImplicit=null, cecImplicit=null, raportDS=null;
+  if(valid){
+    lgsLb = vLGS*rhoLGS*LB_BBL_PER_VOLPCT;
+    /* reactivitatea reala a solidelor de gravitate mica, indiferent de ipoteze */
+    if(lgsLb>1e-9 && mbt>0){
+      fImplicit  = mbtLb/lgsLb;              // MBT / LGS, ambele in lb/bbl
+      cecImplicit= fImplicit*cecBentRef;     // meq/100 g
+    }
+    if(hasBentonite && mbt>0){
+      bentLb = (mbtLb - F*lgsLb)/(1-F);
+      if(bentLb<0) bentLb=0;
+      vBent = bentLb/(SG_BENT*LB_BBL_PER_VOLPCT);
+      if(vBent>vLGS){ vBent=vLGS; bentLb=vBent*SG_BENT*LB_BBL_PER_VOLPCT; }
+    } else { bentLb=0; vBent=0; }
+    vDS = vLGS - vBent;
+    dsLb = lgsLb - bentLb;
+    if(vBent>1e-9) raportDS = vDS/vBent;     // raport DS/bentonita, p.9.35
+  }
+  /* --- NISIP: indicator, NU termen separat in bilant ---
+     MI-SWACO Cap.3, Sect.4 si glosar: nisipul este fractiunea de solide
+     insolubile abrazive retinuta de sita de 200 mesh (74 micron), exprimata
+     ca procent volumic din fluid. Este deja continut in solidele masurate
+     de retorta, deci NU se adauga separat - ar insemna dubla numarare.
+     Clasificarea dimensionala, Cap.8 p.8.3:
+       coloidal < 2 µ · silt 2-74 µ · nisip 74-2000 µ · pietris > 2000 µ
+     Ca marime, nisipul apartine solidelor de gravitate mica (detritus). */
+  let nisipPctSolide=null, nisipPctLGS=null, nisipKgM3=null;
+  if(valid && sand>0){
+    nisipKgM3    = sand*rhoLGS*10;
+    nisipPctSolide = vSolids>1e-9 ? sand/vSolids*100 : null;
+    nisipPctLGS    = vLGS>1e-9    ? sand/vLGS*100    : null;
+    if(sand>vLGS+1e-9)
+      warn.push({t:'err',m:`Nisipul (${sand.toFixed(2)} %) depășește solidele de gravitate mică (${vLGS.toFixed(2)} %). Imposibil — nisipul este o fracțiune a acestora. Verifică testul de nisip sau retorta.`});
+    else if(sand>1)
+      warn.push({t:'warn',m:`Nisip ${sand.toFixed(2)} % vol — peste limita uzuală de 1 % (Baroid). Fracțiunea peste 74 µm este abrazivă: uzează pompele, duzele și garnitura. Verifică sitele și desnisipatorul.`});
+  }
+  /* --- INCERTITUDINEA IMPARTIRII HGS/LGS ---
+     V_HGS = V_solide x (SG_mediu - ro_LGS)/(ro_HGS - ro_LGS)
+     O eroare sigma_ro la densitatea noroiului se propaga:
+       sigma_HGS = 100 x sigma_ro / (ro_HGS - ro_LGS)
+     Numitorul este fereastra de densitate. Cu cat e mai ingusta,
+     cu atat incertitudinea creste - de aceea barita se separa ferm,
+     iar CaCO3 practic deloc. */
+  const sigmaRho = (inp.sigmaRho>0) ? inp.sigmaRho : 0.005;   // rezolutia cantarului
+  const fereastra = Math.abs(rhoHGS - rhoLGS);
+  const sigmaHGS = fereastra>1e-9 ? 100*sigmaRho/fereastra : null;
+  let incredere=null;
+  if(sigmaHGS!==null && valid){
+    incredere = sigmaHGS<0.5 ? 'ferma' : (sigmaHGS<2 ? 'acceptabila' : 'nefiabila');
+    if(vSolids>0.01 && sigmaHGS>vSolids) incredere='inutilizabila';
+  }
+  /* --- VERIFICARE PRIN INVENTAR ---
+     Cantitatea de material greu pompata efectiv, impartita la volumul activ,
+     este singura masuratoare independenta de densitate. */
+  const invKg = Math.max(inp.invKg||0, 0);
+  let vHGSinv=null, difInv=null, acordInv=null;
+  if(invKg>0 && rhoHGS>0){
+    vHGSinv = invKg/(rhoHGS*10);
+    if(valid){
+      difInv = vHGS - vHGSinv;
+      acordInv = (sigmaHGS!==null && Math.abs(difInv)<=sigmaHGS) ? 'în limita incertitudinii'
+               : (Math.abs(difInv)<=2*(sigmaHGS||0) ? 'la limită' : 'în dezacord');
+    }
+  }
+  const rhoCheck = valid ? (vBrine*br.sg + vOil*rhoOil + vAdd*addSG + vHGS*rhoHGS + vLGS*rhoLGS)/100 : null;
+  const volCheck = valid ? (vBrine + vOil + vAdd + vHGS + vLGS) : null;
+  return { brine:br, vSalt, vBrine, vWater, vOil, vSolids, massSolids, sgAvg,
+           vSolHL, sgAvgHL, vAdd, addKg, addSG,
+           vHGS, vLGS, vBent, vDS, bentLb, lgsLb, dsLb, F, mbtLb,
+           fImplicit, cecImplicit, cecBentRef, raportDS, mbtConv,
+           sand, nisipKgM3, nisipPctSolide, nisipPctLGS,
+           sigmaRho, fereastra, sigmaHGS, incredere,
+           invKg, vHGSinv, difInv, acordInv,
+           vHGSraw, vLGSraw, valid, physical, fatal,
+           rhoCheck, volCheck, dRho: rhoCheck===null?null:rhoCheck-rhoMud, warn };
+}
+/* ============================================================
+   ANALIZA INCREMENTALA (referinta + increment)
+   ============================================================
+   Ideea: daca la un punct de referinta se cunoaste sigur LGS
+   (de regula 0 - sistem proaspat construit sau curatat complet),
+   atunci HGS de la referinta rezulta EXACT, fara nicio impartire
+   prin densitate - nu exista ambiguitate de fereastra, pentru ca
+   nu exista nicio impartire de facut (LGS=0 e dat, HGS0=solide0).
+   La verificarea urmatoare, orice crestere a densitatii care NU
+   se explica prin material de ingreunare adaugat (inventar) este,
+   prin excludere, detritus de foraj acumulat. Nu se mai imparte
+   prin densitate deloc - se scade direct.
+   Aceasta ocoleste complet problema ferestrei inguste (CaCO3):
+   incertitudinea nu mai vine din 1/(ro_HGS-ro_LGS), ci doar din
+   precizia retortei si din cat de bine se cunoaste materialul
+   adaugat intre cele doua verificari - de regula mult mai mica.
+------------------------------------------------------------ */
+function analyzeIncremental(base, cur){
+  const warn=[];
+  /* 1) LA REFERINTA: se ia doar solidele totale (independent de
+     rhoHGS/rhoLGS - nu exista impartire de facut). */
+  const baseA = analyze(Object.assign({}, base, {
+    rhoHGS: cur.rhoHGS, rhoLGS: cur.rhoLGS,
+    mbt:0, hasBentonite:false, sand:0, addKg:0,
+    sigmaRho: cur.sigmaRho
+  }));
+  baseA.warn.forEach(w=>{ if(w.t==='err') warn.push({t:'err', m:'La referință: '+w.m}); });
+  const vLGS0 = Math.max(base.vLGSassumed||0, 0);
+  let vHGS0=null;
+  if(baseA.vSolids!==undefined && !isNaN(baseA.vSolids)){
+    vHGS0 = baseA.vSolids - vLGS0;
+    if(vHGS0 < -0.005){
+      warn.push({t:'err', m:`La referință, LGS asumat (${vLGS0.toFixed(2)} %) depășește solidele totale din retortă (${baseA.vSolids.toFixed(2)} %). Ipoteza de referință este incompatibilă cu propria retortă.`});
+      vHGS0=null;
+    }
+  }
+  /* 2) LA VERIFICAREA CURENTA: analiza completa normala (clasica),
+     pastrata pentru comparatie si pentru tot ce nu tine de split
+     (saramura, retorta, nisip pe baza clasica, reactivitate MBT). */
+  const curA = analyze(cur);
+  const vSolids1 = curA.vSolids;
+  /* 3) INCREMENTUL: material greu adaugat intre cele doua verificari,
+     din inventar (kg/m3), plus tot ce a aparut in plus e detritus. */
+  const addedKg = Math.max(cur.addedKg||0, 0);
+  const vHGSadded = (addedKg>0 && cur.rhoHGS>0) ? addedKg/(cur.rhoHGS*10) : 0;
+  let vHGS1=null, vLGS1=null;
+  if(vHGS0!==null){
+    vHGS1 = vHGS0 + vHGSadded;
+    vLGS1 = vSolids1 - vHGS1;
+    if(vHGS1 < -0.005 || vLGS1 < -0.005){
+      warn.push({t:'err', m:'Rezultatul incremental este imposibil fizic (HGS sau LGS negativ). Verifică ipoteza de referință sau cantitatea de material adăugată.'});
+      vHGS1=null; vLGS1=null;
+    }
+  }
+  const validInc = vHGS1!==null && vLGS1!==null;
+  /* 4) VERIFICARE DE CONSISTENTA: ce densitate ar implica acest split?
+     Daca difera mult de densitatea masurata, ipoteza de referinta
+     sau evidenta materialului adaugat trebuie reverificate. */
+  let rhoImplied=null, dRhoImplied=null;
+  if(validInc){
+    rhoImplied = (curA.vBrine*curA.brine.sg + cur.vOil*cur.rhoOil + vHGS1*cur.rhoHGS + vLGS1*cur.rhoLGS)/100;
+    dRhoImplied = rhoImplied - cur.rhoMud;
+    const pragConsistenta = 3*(cur.sigmaRho>0?cur.sigmaRho:0.005);
+    if(Math.abs(dRhoImplied) > pragConsistenta)
+      warn.push({t:'warn', m:`Densitatea implicată de split-ul incremental (${rhoImplied.toFixed(4)} SG) diferă de cea măsurată (${cur.rhoMud.toFixed(3)} SG) cu ${(dRhoImplied>=0?'+':'')}${dRhoImplied.toFixed(4)}. Reverifică ipoteza de referință (LGS asumat) sau evidența materialului adăugat.`});
+  }
+  /* 5) bentonita / detritus, pe vLGS1 (aceeasi formula p.9.34) */
+  const F = (cur.fBent && cur.fBent>0 && cur.fBent<1) ? cur.fBent : (1/9);
+  const mbtConv = (cur.mbtConv>0) ? cur.mbtConv : MBT_KGM3_TO_LBBBL;
+  const mbtLb = (cur.mbt||0)*mbtConv;
+  let vBent1=null, vDS1=null, bentLb1=null, dsLb1=null, lgsLb1=null, raportDS1=null;
+  let fImplicit1=null, cecImplicit1=null;
+  const cecBentRef = cur.cecBent>0 ? cur.cecBent : 65;
+  if(validInc){
+    lgsLb1 = vLGS1*cur.rhoLGS*LB_BBL_PER_VOLPCT;
+    if(lgsLb1>1e-9 && cur.mbt>0){
+      fImplicit1 = mbtLb/lgsLb1;
+      cecImplicit1 = fImplicit1*cecBentRef;
+    }
+    if(cur.hasBentonite && cur.mbt>0){
+      bentLb1 = (mbtLb - F*lgsLb1)/(1-F);
+      if(bentLb1<0) bentLb1=0;
+      vBent1 = bentLb1/(SG_BENT*LB_BBL_PER_VOLPCT);
+      if(vBent1>vLGS1){ vBent1=vLGS1; bentLb1=vBent1*SG_BENT*LB_BBL_PER_VOLPCT; }
+    } else { bentLb1=0; vBent1=0; }
+    vDS1 = vLGS1 - vBent1;
+    dsLb1 = lgsLb1 - bentLb1;
+    if(vBent1>1e-9) raportDS1 = vDS1/vBent1;
+  }
+  /* 6) nisip, pe vLGS1 */
+  const sand = Math.max(cur.sand||0,0);
+  let nisipKgM31=null, nisipPctSolide1=null, nisipPctLGS1=null;
+  if(validInc && sand>0){
+    nisipKgM31 = sand*cur.rhoLGS*10;
+    nisipPctSolide1 = vSolids1>1e-9 ? sand/vSolids1*100 : null;
+    nisipPctLGS1 = vLGS1>1e-9 ? sand/vLGS1*100 : null;
+    if(sand>vLGS1+1e-9)
+      warn.push({t:'err', m:`Nisipul (${sand.toFixed(2)} %) depășește LGS-ul incremental (${vLGS1.toFixed(2)} %).`});
+  }
+  /* 7) INCERTITUDINEA METODEI INCREMENTALE
+     Nu mai exista amplificare 1/fereastra. Sursele de eroare sunt:
+       - precizia retortei la referinta si la verificarea curenta
+       - cat de bine se cunoaste materialul adaugat intre verificari */
+  const sigmaRet = cur.sigmaRet>0 ? cur.sigmaRet : 0.30;         // %vol, precizia retortei
+  const sigmaAddedKg = cur.sigmaAddedKg>=0 ? cur.sigmaAddedKg
+                      : (addedKg>0 ? Math.max(addedKg*0.05, 2) : 0);
+  const sigmaVHGSadded = (cur.rhoHGS>0) ? sigmaAddedKg/(cur.rhoHGS*10) : 0;
+  const sigmaVHGS1 = Math.sqrt(sigmaRet*sigmaRet + sigmaVHGSadded*sigmaVHGSadded);
+  const sigmaVLGS1 = Math.sqrt(sigmaVHGS1*sigmaVHGS1 + sigmaRet*sigmaRet);
+  /* 8) comparatie cu metoda clasica, pe acelasi punct curent */
+  let diffClassic=null, acordClassic=null;
+  if(validInc && curA.valid && curA.vHGS!==null){
+    diffClassic = vHGS1 - curA.vHGS;
+    const sigCombinat = Math.sqrt(sigmaVHGS1*sigmaVHGS1 + (curA.sigmaHGS||0)*(curA.sigmaHGS||0));
+    acordClassic = Math.abs(diffClassic)<=sigCombinat ? 'în acord'
+                 : (Math.abs(diffClassic)<=2*sigCombinat ? 'la limită' : 'în dezacord');
+  }
+  return {
+    base: { vSolids:baseA.vSolids, vLGS0, vHGS0, valid: vHGS0!==null, analyze:baseA },
+    current: curA,
+    addedKg, vHGSadded,
+    vSolids1, vHGS1, vLGS1, vBent1, vDS1, bentLb1, dsLb1, lgsLb1, raportDS1,
+    fImplicit1, cecImplicit1,
+    nisipKgM31, nisipPctSolide1, nisipPctLGS1, sand,
+    rhoImplied, dRhoImplied,
+    sigmaRet, sigmaAddedKg, sigmaVHGS1, sigmaVLGS1,
+    diffClassic, acordClassic,
+    valid: validInc, warn
+  };
+}
+/* ------------------------------------------------------------
+   diagnose - ce valoare ar trebui sa aiba fiecare intrare
+   pentru ca rezultatul sa fie fizic posibil
+   Se rezolva pentru SG mediu = ro_LGS (HGS=0) si = ro_HGS (HGS=tot)
+------------------------------------------------------------ */
+function diagnose(inp){
+  const { vWater, vOil, rhoOil, cl, k, na, ca, mg, saltBasis, rhoHGS, rhoLGS } = inp;
+  const br = brineProps(saltBasis, cl, k, na, ca, mg);
+  /* aceleasi suprascrieri manuale ca in analyze, fara mesaje */
+  if(inp.sgSwManual>0){ br.sg = inp.sgSwManual; br.wt = br.sare/(br.sg*10000); }
+  const vSalt = (inp.vBrineManual>0) ? inp.vBrineManual - vWater
+                                     : saltVolume(vWater, br.sg, br.wt);
+  const vBrine = vWater + vSalt;
+  const vSolids = 100 - vOil - vBrine;
+  if(vSolids<=0.01) return null;
+  /* densitatea noroiului care da SG mediu = tinta */
+  const rhoFor = sgT => (sgT*vSolids + vBrine*br.sg + vOil*rhoOil)/100;
+  /* apa din retorta care da SG mediu = tinta (rezolvare numerica) */
+  const waterFor = sgT => {
+    let lo=0, hi=100-vOil;
+    for(let i=0;i<200;i++){
+      const mid=(lo+hi)/2;
+      const vs=saltVolume(mid,br.sg,br.wt), sw=mid+vs, so=100-vOil-sw;
+      if(so<=1e-6){ hi=mid; continue; }
+      const sm=(100*inp.rhoMud - sw*br.sg - vOil*rhoOil)/so;
+      if(sm<sgT) lo=mid; else hi=mid;
+    }
+    const r=(lo+hi)/2;
+    return (r>0.01 && r<100-vOil-0.01) ? r : null;
+  };
+  return {
+    vSolids,
+    rho:   { min:rhoFor(rhoLGS), max:rhoFor(rhoHGS), actual:inp.rhoMud },
+    water: { min:waterFor(rhoLGS), max:waterFor(rhoHGS), actual:vWater },
+    sgLGSmax: (100*inp.rhoMud - vBrine*br.sg - vOil*rhoOil)/vSolids
+  };
+}
+/* ================= INTERFATA ================= */
+const d=document, $=i=>document.getElementById(i), n=i=>parseFloat($(i).value)||0;
+let saltBasis='mixed';
+const F=(v,d)=>(v===null||v===undefined||!isFinite(v))?'—':v.toFixed(d===undefined?2:d);
+
+function seg(id,cb){$(id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  [...$(id).children].forEach(x=>x.classList.remove('on'));b.classList.add('on');cb(b.dataset.v);});}
+seg('segSalt',v=>{saltBasis=v;run();});
+seg('segMat',v=>{$('rhoHGS').value=v;run();});
+// selector fluide de baza, generat din sursele verificate
+$('segOil').innerHTML=Object.keys(OILS).map(k=>
+  `<button data-v="${OILS[k].sg}" title="${OILS[k].sursa}">${OILS[k].nume} ${OILS[k].sg.toFixed(3)}</button>`).join('');
+seg('segOil',v=>{$('rhoOil').value=v;run();});
+$('segAdd').innerHTML=Object.keys(ADITIVI).map(k=>
+  `<button data-v="${ADITIVI[k].sg}" title="${ADITIVI[k].sursa}">${ADITIVI[k].nume.split(' ')[0]} ${ADITIVI[k].sg.toFixed(2)}</button>`).join('');
+seg('segAdd',v=>{$('addSG').value=v;run();});
+
+function collect(){return{rhoMud:n('rhoMud'),vWater:n('vWater'),vOil:n('vOil'),rhoOil:n('rhoOil'),
+  cl:n('cl'),k:n('k'),na:n('na'),ca:n('ca'),mg:n('mg'),saltBasis,rhoHGS:n('rhoHGS'),rhoLGS:n('rhoLGS'),
+  mbt:n('mbt'),sand:n('sand'),invKg:n('invKg'),sigmaRho:n('sigmaRho'),addKg:n('addKg'),addSG:n('addSG'),hasBentonite:true,sgSwManual:n('sgSwManual'),vBrineManual:n('vBrineManual'),mbtConv:n('mbtConv')};}
+
+function run(){
+  const inp=collect(), a=analyze(inp);
+  $('vSolRaw').value=(100-inp.vWater-inp.vOil).toFixed(2);
+
+  [['rhoMud',LIM.rhoMud],['rhoOil',LIM.rhoOil],['rhoHGS',LIM.rhoHGS],['rhoLGS',LIM.rhoLGS],
+   ['mbt',LIM.mbt],['cl',LIM.cl],['k',LIM.k],
+   ['incRhoMud0',LIM.rhoMud],['incRhoMud1',LIM.rhoMud]].forEach(([id,L])=>{
+    const v=n(id);$(id).classList.toggle('bad',v<L[0]||v>L[1]);});
+  $('vWater').classList.toggle('bad',n('vWater')<0||n('vWater')>100);
+  $('vOil').classList.toggle('bad',n('vOil')<0||n('vOil')>100);
+  $('incVWater0').classList.toggle('bad',n('incVWater0')<0||n('incVWater0')>100);
+  $('incVOil0').classList.toggle('bad',n('incVOil0')<0||n('incVOil0')>100);
+  $('incVWater1').classList.toggle('bad',n('incVWater1')<0||n('incVWater1')>100);
+  $('incVOil1').classList.toggle('bad',n('incVOil1')<0||n('incVOil1')>100);
+
+  const br=a.brine;
+  const satK = br.wKCl>SAT.KCl, satN = br.wNaCl>SAT.NaCl;
+  $('tSalt').innerHTML='<tr><th>Specie</th><th style="text-align:right">kg/m³</th><th style="text-align:right">% greutate</th><th style="text-align:right">Saturație</th></tr>'+
+    `<tr><td>KCl</td><td class="n">${F(br.KCl/1000,2)}</td><td class="n">${F(br.wKCl,2)} %</td>`+
+      `<td class="n" style="color:${satK?'#d66060':'var(--ink-faint)'}">${br.wKCl>0?F(br.wKCl/SAT.KCl*100,0)+' % din sat.':'—'}</td></tr>`+
+    (br.CaCl2>0?`<tr><td>CaCl₂</td><td class="n">${F(br.CaCl2/1000,3)}</td><td class="n">${F(br.wCaCl2,3)} %</td><td class="n" style="color:var(--ink-faint)">—</td></tr>`:'')+
+    (br.MgCl2>0?`<tr><td>MgCl₂</td><td class="n">${F(br.MgCl2/1000,3)}</td><td class="n">${F(br.wMgCl2,3)} %</td><td class="n" style="color:var(--ink-faint)">—</td></tr>`:'')+
+    `<tr><td>NaCl</td><td class="n">${F(br.NaCl/1000,2)}</td><td class="n">${F(br.wNaCl,2)} %</td>`+
+      `<td class="n" style="color:${satN?'#d66060':'var(--ink-faint)'}">${br.wNaCl>0?F(br.wNaCl/SAT.NaCl*100,0)+' % din sat.':'—'}</td></tr>`+
+    `<tr class="hi"><td><b>Sare totală</b></td><td class="n">${F(br.sare/1000,2)}</td><td class="n">${F(br.wt,3)} %</td>`+
+      `<td class="n" style="font-size:11px;color:var(--ink-faint)">se folosește în formulă</td></tr>`+
+    `<tr><td>SG saramură</td><td class="n" colspan="2">${F(br.sg,5)}</td>`+
+      `<td class="n" style="font-size:11px;color:var(--ink-faint)">${saltBasis==='nacl'?'curbă p. 9.33':'tabele 20 °C, iterativ'}</td></tr>`+
+    `<tr class="tot"><td>Volum sare corectat</td><td class="n" colspan="2">${F(a.vSalt,3)} %</td>`+
+      `<td class="n" style="font-size:11px;color:var(--ink-faint)">${br.eticheta}</td></tr>`;
+
+  if(saltBasis==='mixed' && br.meq){
+    const eq=br.meq, dif=Math.abs(eq.dif);
+    $('tIons').innerHTML='<tr><th>Repartiția clorului</th><th style="text-align:right">mg/L</th><th style="text-align:right">kg/m³</th><th>Observație</th></tr>'+
+      `<tr><td>Cl⁻ total măsurat</td><td class="n">${F(inp.cl,0)}</td><td class="n">${F(inp.cl/1000,2)}</td><td style="font-size:11px;color:var(--ink-faint)">din analiză</td></tr>`+
+      `<tr><td>&nbsp;&nbsp;— legat de K⁺</td><td class="n">${F(br.clDinKCl,0)}</td><td class="n">${F(br.clDinKCl/1000,2)}</td><td style="font-size:11px;color:var(--ink-faint)">valență 1 · × 0,9066</td></tr>`+
+      (br.clDinCaCl2>0?`<tr><td>&nbsp;&nbsp;— legat de Ca²⁺</td><td class="n">${F(br.clDinCaCl2,1)}</td><td class="n">${F(br.clDinCaCl2/1000,3)}</td><td style="font-size:11px;color:var(--ink-faint)">valență 2 · × 1,7690</td></tr>`:'')+
+      (br.clDinMgCl2>0?`<tr><td>&nbsp;&nbsp;— legat de Mg²⁺</td><td class="n">${F(br.clDinMgCl2,1)}</td><td class="n">${F(br.clDinMgCl2/1000,3)}</td><td style="font-size:11px;color:var(--ink-faint)">valență 2 · × 2,9165</td></tr>`:'')+
+      `<tr class="hi"><td>&nbsp;&nbsp;— liber, se leagă de Na⁺</td><td class="n">${F(br.clLiber,0)}</td><td class="n">${F(br.clLiber/1000,2)}</td><td style="font-size:11px;color:var(--ink-faint)">restul</td></tr>`+
+      `<tr><td>Na⁺ dedus</td><td class="n">${F(br.Na,0)}</td><td class="n">${F(br.Na/1000,2)}</td>`+
+        `<td style="font-size:11px;color:var(--ink-faint)">${inp.na>0?'măsurat: '+F(inp.na,0)+' mg/L':'nemăsurat'}</td></tr>`+
+      `<tr class="tot"><td>Bilanț de sarcini</td><td class="n" colspan="2">K ${F(eq.K,1)} + Ca ${F(eq.Ca,1)} + Mg ${F(eq.Mg,1)} + Na ${F(eq.Na,1)} = ${F(eq.cationi,1)} vs Cl ${F(eq.anioni,1)} meq/L</td>`+
+        `<td class="n" style="color:${dif<0.01?'#8fb37c':'#d66060'};font-size:11px">diferență ${F(dif,3)}</td></tr>`;
+    $('ionsWrap').style.display='';
+  } else { $('ionsWrap').style.display='none'; $('tIons').innerHTML=''; }
+
+  const folosit = saltBasis==='mixed' ? 'Se folosesc <b>ambele</b>: K⁺ dă KCl-ul, iar clorurile rămase dau NaCl-ul. Sărurile se numără total.'
+               : saltBasis==='nacl'  ? 'Se folosesc <b>clorurile</b>. Câmpul K⁺ este ignorat pe această bază.'
+               : saltBasis==='kcl'   ? 'Se folosește <b>K⁺</b>. Câmpul cloruri este ignorat pe această bază.'
+               : 'Nu se aplică nicio corecție de sare. Ambele câmpuri sunt ignorate.';
+  const nSalt=d.getElementById('saltUse'); if(nSalt) nSalt.innerHTML=folosit;
+
+  // nota fluid de baza: potrivire cu sursele
+  const oilKey=Object.keys(OILS).find(k=>Math.abs(OILS[k].sg-inp.rhoOil)<0.0005);
+  [...$('segOil').children].forEach(b=>b.classList.toggle('on',Math.abs(parseFloat(b.dataset.v)-inp.rhoOil)<0.0005));
+  $('oilNote').innerHTML = oilKey
+    ? `<b>${OILS[oilKey].nume}</b> — SG ${OILS[oilKey].sg.toFixed(3)}, sursa: ${OILS[oilKey].sursa}.`
+    : `SG ${F(inp.rhoOil,3)} nu corespunde niciunui fluid de bază din surse (domeniul lor: 0,765 – 0,850). `+
+      (inp.rhoOil>0.86 ? 'Dacă faza organică este lubrifiant, verifică fișa tehnică a produsului — densitatea intră direct în bilanțul masic.' : 'Verifică valoarea.');
+
+  const ok=a.valid;
+  ['oHgs','oLgs','oDs'].forEach(id=>$(id).parentElement.classList.toggle('dead',!ok));
+  $('oSol').textContent = a.vSolids>-0.01 ? F(a.vSolids) : '—';
+  $('oHgs').textContent = ok?F(a.vHGS):'—';
+  $('oLgs').textContent = ok?F(a.vLGS):'—';
+  $('oDs').textContent  = ok?F(a.vDS):'—';
+  $('oHgsU').innerHTML = ok
+    ? F(a.vHGS*inp.rhoHGS*10,1)+' kg/m³<span class="pm"> ± '+F(a.sigmaHGS*inp.rhoHGS*10,1)+'</span>'
+    : 'rezultat invalid';
+  $('oLgsU').textContent= ok?F(a.vLGS*inp.rhoLGS*10,1)+' kg/m³':'rezultat invalid';
+  $('oDsU').textContent = ok?F(a.vDS*inp.rhoLGS*10,1)+' kg/m³':'rezultat invalid';
+
+  if(ok && a.vBent!==null){
+    $('bentNote').innerHTML = a.vBent>0.001
+      ? `Împărțirea bentonită / detritus, formula p. 9.34–9.35, cu F = <b>1/9 = 0,1111</b> (valoarea implicită din carte, când CEC-ul detritusului nu este măsurat).<br>
+         Rezultă bentonită <b>${F(a.vBent)} % vol</b> și detritus <b>${F(a.vDS)} % vol</b>.`
+      : `<b>Bentonită = 0, deci DS = LGS.</b> MBT-ul măsurat (${F(a.mbtLb,2)} lb/bbl) este mai mic decât cel pe care detritusul singur l-ar produce la F = 1/9
+         (${F(a.F*a.lgsLb,2)} lb/bbl). Formula p. 9.34 dă bentonită negativă, care se limitează la zero.<br>
+         Interpretare: solidele de gravitate mică sunt integral detritus, iar reactivitatea lui este sub ipoteza implicită — F implicit ${F(a.fImplicit,3)} față de 0,111.`;
+  } else $('bentNote').innerHTML = `Împărțirea bentonită / detritus se aplică după formula p. 9.34–9.35, cu F = <b>1/9 = 0,1111</b>.`;
+
+  // mod de calcul: tabel cu ipotezele active si sursa fiecareia
+  {
+    const SURSE={rhoOil:0.839,rhoHGS:2.70,sgSw:'tabele 20 °C',vBrine:'calculat',mbt:5/14};
+    const impus = inp.sgSwManual>0 || inp.vBrineManual>0 || inp.mbtConv>0;
+    const rows=[
+      ['SG fază organică', F(inp.rhoOil,3), Math.abs(inp.rhoOil-SURSE.rhoOil)<1e-6?'MI-SWACO p. 9.33 (7 lb/gal)':'valoare proprie'],
+      ['SG material greu', F(inp.rhoHGS,2), Math.abs(inp.rhoHGS-2.70)<1e-6?'Mixical · BARACARB · W.O.30':
+        (Math.abs(inp.rhoHGS-4.20)<1e-6?'M-I BAR (API 13A)':
+        (Math.abs(inp.rhoHGS-5.00)<1e-6?'FER-OX':
+        (Math.abs(inp.rhoHGS-2.80)<1e-6?'LO-WATE':'valoare proprie')))],
+      ['SG detritus', F(inp.rhoLGS,2), Math.abs(inp.rhoLGS-2.60)<1e-6?'MI-SWACO p. 9.32 (21,7 lb/gal)':'valoare proprie'],
+      ['SG saramură', F(a.brine.sg,5), inp.sgSwManual>0?'impus manual':'tabele de densitate 20 °C'],
+      ['Volum saramură', F(a.vBrine,3)+' %', inp.vBrineManual>0?'impus manual':'formula p. 9.33'],
+      ['Conversie MBT', '× '+F(a.mbtConv,5), inp.mbtConv>0?'impusă manual':'p. 3.14 (5/14)']
+    ];
+    $('tIpoteze').innerHTML='<tr><th>Ipoteză</th><th style="text-align:right">Valoare</th><th>Sursă</th></tr>'+
+      rows.map(r=>`<tr${/manual|proprie/.test(r[2])?' class="bad"':''}><td>${r[0]}</td><td class="n">${r[1]}</td>`+
+        `<td style="font-size:11.5px;color:var(--ink-faint)">${r[2]}</td></tr>`).join('');
+    $('modNote').className = impus?'note wa':'note ok';
+    $('modNote').innerHTML = impus
+      ? `<b>Ipoteze impuse manual.</b> Cel puțin o valoare este forțată în locul celei calculate — rândurile marcate în tabel. Rezultatul este valabil pentru ipotezele introduse, nu pentru cele din surse.`
+      : `<b>Toate ipotezele provin din surse.</b> Modifică oricare dintre ele în secțiunea de parametri avansați dacă lucrezi cu alte convenții — tabelul semnalează imediat abaterea.`;
+  }
+
+  $('bar').innerHTML = ok ? [[a.vBrine,'#4a7c8c'],[a.vOil,'#8b7355'],[Math.max(a.vHGS,0),'#7fb3c4'],
+    [Math.max(a.vBent,0),'#8fb37c'],[Math.max(a.vDS,0),'#d66060']]
+    .map(([v,c])=>`<div style="width:${Math.max(v,0)}%;background:${c}">${v>6?v.toFixed(1):''}</div>`).join('')
+    : `<div style="width:100%;background:#2a2520;color:var(--ink-faint)">rezultat invalid — vezi diagnosticul</div>`;
+
+  const R=[['Apă retortă',a.vWater,null,null,null],['Sare dizolvată',a.vSalt,null,null,null],
+    ['<b>Saramură</b>',a.vBrine,br.sg,null,null],['Ulei',a.vOil,inp.rhoOil,null,null],
+    ...(a.vAdd>0?[['Aditivi solizi',a.vAdd,inp.addSG,inp.addKg,inp.addKg*0.350490]]:[]),
+    ['<b>HGS</b>',ok?a.vHGS:null,inp.rhoHGS,ok?a.vHGS*inp.rhoHGS*10:null,ok?a.vHGS*inp.rhoHGS*3.5:null],
+    ['<b>LGS total</b>',ok?a.vLGS:null,inp.rhoLGS,ok?a.vLGS*inp.rhoLGS*10:null,ok?a.lgsLb:null],
+    ['&nbsp;&nbsp;— bentonită',ok?a.vBent:null,inp.rhoLGS,ok?a.vBent*inp.rhoLGS*10:null,ok?a.bentLb:null],
+    ['&nbsp;&nbsp;— DS detritus',ok?a.vDS:null,inp.rhoLGS,ok?a.vDS*inp.rhoLGS*10:null,ok?a.dsLb:null],
+    ['&nbsp;&nbsp;&nbsp;&nbsp;din care nisip <span style="font-size:10px;color:var(--ink-faint)">&gt; 74 µm</span>',
+      ok&&inp.sand>0?inp.sand:null,inp.rhoLGS,ok&&inp.sand>0?a.nisipKgM3:null,
+      ok&&inp.sand>0?inp.sand*inp.rhoLGS*3.5049:null]];
+  $('tbl').innerHTML='<tr><th>Component</th><th style="text-align:right">% vol</th><th style="text-align:right">SG</th><th style="text-align:right">kg/m³</th><th style="text-align:right">lb/bbl</th></tr>'+
+    R.map(r=>{const hi=(r[0].indexOf('HGS')>=0||r[0].indexOf('LGS')>=0)?' class="hi"':'';
+      return `<tr${hi}><td>${r[0]}</td><td class="n">${F(r[1])}</td><td class="n">${F(r[2],3)}</td>`+
+        `<td class="n">${F(r[3],1)}</td><td class="n">${F(r[4],1)}</td></tr>`;}).join('')+
+    `<tr class="tot"><td>Total</td><td class="n">${F(a.volCheck)}</td><td colspan="3"></td></tr>`;
+
+  // tabel de ierarhie a solidelor
+  if(ok){
+    const retort=100-inp.vWater-inp.vOil;
+    const R=(nivel,nume,val,nota)=>`<tr${nivel===0?' class="hi"':''}><td style="padding-left:${8+nivel*18}px">${nume}</td>`+
+      `<td class="n">${val===null?'—':F(val)+' %'}</td><td style="font-size:11px;color:var(--ink-faint)">${nota}</td></tr>`;
+    $('tIerarhie').innerHTML='<tr><th>Compoziția solidelor</th><th style="text-align:right">% vol</th><th>Determinare</th></tr>'+
+      R(0,'Solide din retortă',retort,'100 − apă − ulei')+
+      R(1,'− sare cristalizată',a.vSalt,'corecție din analiza de săruri')+
+      R(0,'Solide corectate',a.vSolids,'suspendate real')+
+      (a.vAdd>0?R(1,'aditivi declarați',a.vAdd,'din inventar, SG propriu'):'')+
+      R(1,'HGS',a.vHGS,'bilanț masic — densitate')+
+      R(1,'LGS',a.vLGS,'restul')+
+      R(2,'bentonită',a.vBent,'MBT — reactivitate')+
+      R(2,'detritus (DS)',a.vDS,'LGS − bentonită')+
+      (inp.sand>0?R(3,'din care nisip &gt; 74 µm',inp.sand,'sită 200 mesh — mărime'):'');
+  } else $('tIerarhie').innerHTML='';
+
+  // tabel de reactivitate
+  if(ok && a.fImplicit!==null){
+    const fantoma = !inp.hasBentonite && a.fImplicit>a.F;
+    $('tReact').innerHTML='<tr><th>Reactivitatea solidelor</th><th style="text-align:right">Valoare</th><th>Semnificație</th></tr>'+
+      `<tr><td>MBT noroi</td><td class="n">${F(a.mbtLb,2)} lb/bbl</td><td style="font-size:11px;color:var(--ink-faint)">${F(inp.mbt,1)} kg/m³ × 5/14</td></tr>`+
+      `<tr><td>LGS</td><td class="n">${F(a.lgsLb,1)} lb/bbl</td><td style="font-size:11px;color:var(--ink-faint)">${F(a.vLGS)} % vol</td></tr>`+
+      `<tr class="hi"><td>F implicit = MBT / LGS</td><td class="n">${F(a.fImplicit,3)}</td>`+
+        `<td style="font-size:11px;color:var(--ink-faint)">măsurat, fără ipoteze</td></tr>`+
+      `<tr><td>CEC implicit detritus</td><td class="n">${F(a.cecImplicit,1)} meq/100 g</td>`+
+        `<td style="font-size:11px;color:var(--ink-faint)">caolinit 3–10 · illit/clorit 10–40 · smectită 80–150</td></tr>`+
+      (a.raportDS!==null?`<tr class="tot"><td>Raport DS / bentonită</td><td class="n">${F(a.raportDS,2)}</td>`+
+        `<td style="font-size:11px;color:var(--ink-faint)">exemplul cărții: 1,69</td></tr>`:'');
+    if(fantoma)
+      $('msgs').dataset.fantoma = `F implicit (${a.fImplicit.toFixed(3)}) depășește F presupus (${a.F.toFixed(3)}). Dacă ai bifa bentonitei, formula ar raporta ${((a.mbtLb-a.F*a.lgsLb)/(1-a.F)/(2.6*3.5049)).toFixed(2)} % bentonită care nu există în sistem — surplusul de MBT vine din detritus mai reactiv decât presupune F.`;
+    else delete $('msgs').dataset.fantoma;
+  } else { $('tReact').innerHTML=''; delete $('msgs').dataset.fantoma; }
+
+  let h='';
+  if(ok) h+=`<div class="note ok"><b>Verificare:</b> densitate recompusă ${F(a.rhoCheck,4)} SG vs ${inp.rhoMud.toFixed(3)} măsurat.
+    Volume ${F(a.volCheck)} %. SG mediu solide <span class="mono">${F(a.sgAvg,4)}</span>
+    (între ${F(inp.rhoLGS,2)} și ${F(inp.rhoHGS,2)}).</div>`;
+  a.warn.forEach(w=>{h+=`<div class="note ${w.t==='err'?'er':w.t==='warn'?'wa':'info'}">${w.m}</div>`;});
+  if(ok && inp.sand>0 && a.nisipPctLGS!==null)
+    h+=`<div class="note info"><b>Nisip ${F(inp.sand)} % vol</b> — fracțiunea reținută de sita de 200 mesh (74 µm).
+      Reprezintă ${F(a.nisipPctSolide,1)} % din solidele totale și ${F(a.nisipPctLGS,1)} % din LGS.
+      <b>Nu se adaugă separat în bilanț</b>: este deja inclus în solidele măsurate de retortă, ca fracțiune granulometrică a detritusului.
+      Rolul lui este de indicator al eficienței controlului de solide. Limită uzuală: sub 1 % vol.</div>`;
+  if(ok && !inp.hasBentonite)
+    h+=`<div class="note info"><b>DS = LGS.</b> Fără bentonită adăugată, solidele de gravitate mică sunt format exclusiv din detritus — nu este o eroare de calcul, ci definiția: LGS = bentonită + DS, cu bentonita zero.`+
+       ($('msgs').dataset.fantoma?` ${$('msgs').dataset.fantoma}`:'')+`</div>`;
+  if(ok&&a.vLGS>=0){const t=a.vLGS<=7?(a.vLGS<4.5?'sub 4,5 % — foarte curat':'în limitele 4,5–7 %'):(a.vLGS<=10?'peste 7 % — atenție':'peste 10 % — critic');
+    h+=`<div class="note ok"><b>LGS = ${F(a.vLGS)} %</b> — ${t}. Ținte MI-SWACO Cap. 10: sisteme inhibitive 4,5–7 %.</div>`;}
+  $('msgs').innerHTML=h;
+
+  conf(inp,a);
+  diag(inp,a); sens(inp,a); wu(inp);
+  runIncremental(inp);
+}
+
+function conf(inp,a){
+  if(!a.valid || a.sigmaHGS===null){ $('confBox').innerHTML=''; return; }
+  const cls={ferma:'ok',acceptabila:'wa',nefiabila:'er',inutilizabila:'er'}[a.incredere]||'wa';
+  const et={ferma:'încredere fermă',acceptabila:'încredere acceptabilă',
+            nefiabila:'separare nefiabilă',inutilizabila:'separare inutilizabilă'}[a.incredere];
+  let h=`<div class="note ${cls==='ok'?'ok':cls==='wa'?'wa':'er'}">
+    <b>Împărțirea HGS / LGS — ${et}.</b><br>
+    Fereastra de densitate ${F(a.fereastra,2)} SG (${F(inp.rhoHGS,2)} față de ${F(inp.rhoLGS,2)}).
+    Cu o rezoluție a cântarului de ±${F(inp.sigmaRho,3)} SG, incertitudinea rezultatului este
+    <b>± ${F(a.sigmaHGS)} % vol</b> — adică HGS între ${F(Math.max(a.vHGS-a.sigmaHGS,0))} și ${F(Math.min(a.vHGS+a.sigmaHGS,a.vSolids))} %.`;
+  if(a.incredere==='nefiabila'||a.incredere==='inutilizabila')
+    h+=`<br><br>Incertitudinea depășește rezultatul. Cifra de ${F(a.vHGS)} % nu poate fi susținută din densitate —
+        determină cantitatea de material greu din <b>inventar</b> (câmpul din secțiunea 1) sau prin solubilitate în acid.`;
+  h+=`</div>`;
+
+  if(a.vHGSinv!==null){
+    const c={'în limita incertitudinii':'ok','la limită':'wa','în dezacord':'er'}[a.acordInv]||'wa';
+    h+=`<div class="note ${c}"><b>Verificare prin inventar.</b>
+      Din densitate <b>${F(a.vHGS)} %</b> ± ${F(a.sigmaHGS)} · din inventar <b>${F(a.vHGSinv)} %</b>
+      (${F(inp.invKg,1)} kg/m³ ÷ ${F(inp.rhoHGS,2)} × 10).
+      Diferență ${(a.difInv>=0?'+':'')}${F(a.difInv)} % vol — <b>${a.acordInv}</b>.`;
+    if(a.acordInv==='în dezacord')
+      h+=`<br><br>Diferența depășește de două ori incertitudinea. Reverifică densitatea, retorta sau evidența materialului pompat.`;
+    else if(a.incredere==='nefiabila'||a.incredere==='inutilizabila')
+      h+=`<br><br>La această fereastră de densitate, valoarea din inventar este cea de urmat: <b>${F(a.vHGSinv)} % vol</b>,
+          iar LGS rezultă ${F(a.vSolids-a.vHGSinv)} % vol.`;
+    h+=`</div>`;
+  }
+  $('confBox').innerHTML=h;
+}
+
+function diag(inp,a){
+  const g=diagnose(inp);
+  if(!g){ $('tDiag').innerHTML=''; $('diagNote').innerHTML='<div class="note er">Solidele corectate sunt nule sau negative — diagnosticul nu se poate calcula.</div>'; return; }
+  const row=(nm,min,max,act,dec,unit)=>{
+    const inside = act>=min-1e-9 && act<=max+1e-9;
+    return `<tr class="${inside?'good':'bad'}"><td>${nm}</td><td class="n">${F(min,dec)}</td><td class="n">${F(max,dec)}</td>`+
+      `<td class="n">${F(act,dec)}${unit||''}</td><td class="n">${inside?'în domeniu':'ÎN AFARĂ'}</td></tr>`;};
+  $('tDiag').innerHTML='<tr><th>Măsurătoare</th><th style="text-align:right">Minim</th><th style="text-align:right">Maxim</th><th style="text-align:right">Măsurat</th><th style="text-align:right">Stare</th></tr>'+
+    row('Densitate noroi (SG)',g.rho.min,g.rho.max,g.rho.actual,4)+
+    (g.water.min!==null&&g.water.max!==null?row('Retort apă (%)',g.water.min,g.water.max,g.water.actual,2):'')+
+    `<tr><td>SG detritus maxim compatibil</td><td class="n" colspan="2">—</td><td class="n">${F(g.sgLGSmax,4)}</td>`+
+    `<td class="n" style="font-size:11px;color:var(--ink-faint)">SG mediu al solidelor</td></tr>`;
+
+  $('diagNote').innerHTML = a.valid
+    ? `<div class="note ok">Toate măsurătorile sunt în domeniul compatibil. Rezultatul este fizic posibil.</div>`
+    : `<div class="note er"><b>Rezultatul nu este fizic posibil cu valorile introduse.</b><br><br>
+       Pentru a obține un rezultat valid, una dintre măsurători trebuie corectată în domeniul de mai sus.
+       SG-ul mediu al solidelor rezultat este <b>${F(a.sgAvg,4)}</b>, iar el trebuie să cadă între
+       ${F(inp.rhoLGS,2)} (numai detritus) și ${F(inp.rhoHGS,2)} (numai material greu).<br><br>
+       ${a.sgAvg<inp.rhoLGS
+         ? `SG-ul mediu este <b>prea mic</b>: densitatea măsurată e prea mică pentru cantitatea de solide din retortă. Verifică cântarul, retorta, sau ia în calcul un detritus mai ușor (SG detritus sub ${F(a.sgAvg,2)}).`
+         : `SG-ul mediu este <b>prea mare</b>: densitatea e prea mare pentru retorta dată, sau materialul de îngreunare are SG mai mare decât cel selectat.`}</div>`;
+}
+
+function sens(inp,a){
+  const rows=[];
+  const push=(lbl,mod)=>{
+    const x=analyze(Object.assign({},inp,mod));
+    rows.push(`<tr${lbl.indexOf('măsurat')>=0?' class="hi"':''}><td>${lbl}</td>`+
+      `<td class="n">${x.sgAvg===null?'—':F(x.sgAvg,4)}</td>`+
+      `<td class="n">${x.valid?F(x.vHGS):'—'}</td><td class="n">${x.valid?F(x.vLGS):'—'}</td>`+
+      `<td class="n" style="color:${x.valid?'#8fb37c':'#d66060'}">${x.valid?'valid':'invalid'}</td></tr>`);};
+  [-0.02,-0.01,-0.005,0,0.005,0.01,0.02].forEach(d=>
+    push(`densitate ${d===0?'măsurată':(d>0?'+':'')+d.toFixed(3)}`,{rhoMud:inp.rhoMud+d}));
+  [-1,-0.5,0,0.5,1].forEach(d=>{ if(d!==0)
+    push(`apă retortă ${(d>0?'+':'')+d.toFixed(1)} %`,{vWater:inp.vWater+d}); });
+  $('tSens').innerHTML='<tr><th>Variantă</th><th style="text-align:right">SG mediu solide</th><th style="text-align:right">HGS %</th><th style="text-align:right">LGS %</th><th style="text-align:right">Stare</th></tr>'+rows.join('');
+}
+
+function wu(inp){
+  const r2=n('rhoT');
+  $('tWU').innerHTML='<tr><th>Material</th><th style="text-align:right">SG</th><th style="text-align:right">kg/m³</th><th style="text-align:right">% vol</th><th style="text-align:right">lb/bbl</th></tr>'+
+    Object.keys(MAT).map(kk=>{const m=MAT[kk], w=weightUp(inp.rhoMud,r2,m.sg);
+      if(w.err||!isFinite(w.kg)) return `<tr><td>${m.nume}</td><td class="n">${m.sg.toFixed(2)}</td><td class="n" colspan="3" style="color:#d66060">${w.err||'—'}</td></tr>`;
+      return `<tr><td>${m.nume}</td><td class="n">${m.sg.toFixed(2)}</td><td class="n">${F(w.kg,1)}</td><td class="n">${F(w.volPct)}</td><td class="n">${F(w.kg*0.35,1)}</td></tr>`;}).join('');
+}
+/* ---- raport text pentru raportul zilnic ---- */
+function raport(){
+  const inp=collect(), a=analyze(inp);
+  const L=[], p=(k,v)=>L.push(k.padEnd(28)+v);
+  L.push('ANALIZA SOLIDELOR — MI-SWACO Cap. 9');
+  L.push('='.repeat(52));
+  L.push('MĂSURĂTORI');
+  p('  Densitate',F(inp.rhoMud,3)+' SG');
+  p('  Retort apă / ulei',F(inp.vWater)+' / '+F(inp.vOil)+' %');
+  p('  Cl⁻ / K⁺',F(inp.cl,0)+' / '+F(inp.k,0)+' mg/L');
+  if(inp.ca>0||inp.mg>0) p('  Ca²⁺ / Mg²⁺',F(inp.ca,0)+' / '+F(inp.mg,0)+' mg/L');
+  p('  MBT',F(inp.mbt,1)+' kg/m³');
+  if(inp.sand>0) p('  Nisip',F(inp.sand)+' % vol');
+  L.push('');
+  L.push('IPOTEZE');
+  p('  Bază sare',a.brine.eticheta);
+  p('  SG saramură',F(a.brine.sg,5));
+  p('  SG material greu',F(inp.rhoHGS,2));
+  p('  SG detritus',F(inp.rhoLGS,2));
+  p('  SG fază organică',F(inp.rhoOil,3));
+  if(inp.addKg>0) p('  Aditivi solizi',F(inp.addKg,1)+' kg/m³ la SG '+F(inp.addSG,2));
+  L.push('');
+  if(!a.valid){
+    L.push('REZULTAT INVALID');
+    a.warn.filter(x=>x.t==='err').forEach(x=>L.push('  ! '+x.m.replace(/<[^>]+>/g,'')));
+    return L.join('\n');
+  }
+  L.push('REZULTATE                    % vol      kg/m³');
+  const r=(n,v,sg)=>L.push('  '+n.padEnd(24)+F(v).padStart(7)+F(v*sg*10,1).padStart(11));
+  L.push('  '+'Solide corectate'.padEnd(24)+F(a.vSolids).padStart(7));
+  r('HGS',a.vHGS,inp.rhoHGS);
+  r('LGS total',a.vLGS,inp.rhoLGS);
+  r('  bentonită',a.vBent,inp.rhoLGS);
+  r('  DS detritus',a.vDS,inp.rhoLGS);
+  if(inp.sand>0) r('    din care nisip',inp.sand,inp.rhoLGS);
+  L.push('');
+  L.push('ÎNCREDERE');
+  p('  Fereastră densitate',F(a.fereastra,2)+' SG');
+  p('  Incertitudine HGS','± '+F(a.sigmaHGS)+' % vol');
+  p('  Verdict',{ferma:'fermă',acceptabila:'acceptabilă',nefiabila:'nefiabilă',inutilizabila:'inutilizabilă'}[a.incredere]||'—');
+  if(a.vHGSinv!==null){
+    p('  HGS din inventar',F(a.vHGSinv)+' % vol  ('+F(inp.invKg,1)+' kg/m³)');
+    p('  Acord cu densitatea',a.acordInv);
+  }
+  L.push('');
+  L.push('INDICATORI');
+  if(a.fImplicit!==null){
+    p('  F implicit (MBT/LGS)',F(a.fImplicit,3));
+    p('  CEC implicit detritus',F(a.cecImplicit,1)+' meq/100 g');
+  }
+  if(a.raportDS!==null) p('  Raport DS/bentonită',F(a.raportDS,2));
+  p('  SG mediu solide',F(a.sgAvgHL!==null?a.sgAvgHL:a.sgAvg,4));
+  L.push('');
+  L.push('VERIFICARE');
+  p('  Volume însumate',F(a.volCheck,3)+' %');
+  p('  Densitate recompusă',F(a.rhoCheck,4)+' SG  (măsurat '+F(inp.rhoMud,3)+')');
+  const av=a.warn.filter(x=>x.t!=='info');
+  if(av.length){ L.push(''); L.push('OBSERVAȚII');
+    av.forEach(x=>L.push('  - '+x.m.replace(/<[^>]+>/g,''))); }
+  return L.join('\n');
+}
+$('btnRaport').addEventListener('click',()=>{
+  const t=$('raport'); t.value=raport(); t.style.display='block';
+});
+$('btnCopy').addEventListener('click',()=>{
+  const t=$('raport');
+  if(t.style.display==='none'||!t.value){ t.value=raport(); t.style.display='block'; }
+  t.select();
+  try{ document.execCommand('copy'); $('btnCopy').textContent='Copiat'; 
+       setTimeout(()=>{$('btnCopy').textContent='Copiază';},1500); }catch(e){}
+});
+
+// confirmare vizibila ca scriptul ruleaza
+try{ const sb=$('statusBadge'); if(sb) sb.textContent='calcul activ · '+sb.textContent; }catch(e){}
+/* marcaj de stare: daca JS ruleaza, alerta dispare */
+const alerta=$('jsAlert'); if(alerta) alerta.style.display='none';
+
+
+/* ================= ANALIZA INCREMENTALA ================= */
+function runIncremental(inp){
+  const base = {
+    rhoMud:n('incRhoMud0'), vWater:n('incVWater0'), vOil:n('incVOil0'), rhoOil:inp.rhoOil,
+    cl:inp.cl, k:inp.k, ca:inp.ca, mg:inp.mg, saltBasis:inp.saltBasis,
+    vLGSassumed:n('incVLGS0'), sigmaRho:inp.sigmaRho
+  };
+  const cur = {
+    rhoMud:n('incRhoMud1'), vWater:n('incVWater1'), vOil:n('incVOil1'), rhoOil:inp.rhoOil,
+    cl:inp.cl, k:inp.k, ca:inp.ca, mg:inp.mg, saltBasis:inp.saltBasis,
+    rhoHGS:inp.rhoHGS, rhoLGS:inp.rhoLGS, mbt:inp.mbt, sand:0,
+    hasBentonite:inp.hasBentonite, fBent:inp.fBent, mbtConv:inp.mbtConv,
+    cecBent:inp.cecBent, sigmaRho:inp.sigmaRho, addedKg:n('incAddedKg')
+  };
+  const r = analyzeIncremental(base, cur);
+
+  const ok = r.valid;
+  ['incBig'].forEach(()=>{});
+  $('incBig').innerHTML = ok ? `
+    <div class="b"><div class="v">${F(r.base.vHGS0)}</div><div class="l">HGS la referință</div><div class="u">% vol</div></div>
+    <div class="b bl"><div class="v">${F(r.vHGS1)}</div><div class="l">HGS curent</div><div class="u">± ${F(r.sigmaVHGS1)} % vol</div></div>
+    <div class="b g"><div class="v">${F(r.vLGS1)}</div><div class="l">LGS curent</div><div class="u">± ${F(r.sigmaVLGS1)} % vol</div></div>
+    <div class="b r"><div class="v">${r.vDS1!==null?F(r.vDS1):'—'}</div><div class="l">DS detritus</div><div class="u">${r.vBent1>1e-9?'bent '+F(r.vBent1)+' %':'fără bentonită'}</div></div>
+  ` : `<div class="b dead" style="grid-column:1/-1"><div class="v">—</div><div class="l">rezultat invalid — vezi mesajele de mai jos</div></div>`;
+
+  let h='';
+  if(ok){
+    h += `<div class="note ${Math.abs(r.dRhoImplied)<3*inp.sigmaRho?'ok':'wa'}"><b>Verificare de consistență:</b>
+      densitate implicată de split ${F(r.rhoImplied,4)} SG vs ${F(n('incRhoMud1'),3)} măsurată
+      (${r.dRhoImplied>=0?'+':''}${F(r.dRhoImplied,4)}).</div>`;
+  }
+  r.warn.forEach(w=>{ h+=`<div class="note ${w.t==='err'?'er':w.t==='warn'?'wa':'info'}">${w.m}</div>`; });
+  $('incNote').innerHTML = h;
+
+  if(ok){
+    $('tInc').innerHTML = '<tr><th>Mărime</th><th style="text-align:right">Valoare</th><th>Sursă</th></tr>'+
+      `<tr><td>HGS la referință</td><td class="n">${F(r.base.vHGS0)} %</td><td style="font-size:11px;color:var(--ink-faint)">solide₀ − LGS asumat, fără împărțire</td></tr>`+
+      `<tr><td>Material adăugat</td><td class="n">${F(r.addedKg,1)} kg/m³ → ${F(r.vHGSadded,3)} %</td><td style="font-size:11px;color:var(--ink-faint)">din inventar</td></tr>`+
+      `<tr class="hi"><td>HGS curent</td><td class="n">${F(r.vHGS1)} % = ${F(r.vHGS1*inp.rhoHGS*10,1)} kg/m³</td><td style="font-size:11px;color:var(--ink-faint)">HGS₀ + adăugat</td></tr>`+
+      `<tr class="hi"><td>LGS curent</td><td class="n">${F(r.vLGS1)} % = ${F(r.vLGS1*inp.rhoLGS*10,1)} kg/m³</td><td style="font-size:11px;color:var(--ink-faint)">solide₁ − HGS curent</td></tr>`+
+      (r.vBent1>1e-9?`<tr><td>&nbsp;&nbsp;— bentonită</td><td class="n">${F(r.vBent1)} %</td><td style="font-size:11px;color:var(--ink-faint)">MBT, p. 9.34</td></tr>`:'')+
+      (r.vDS1!==null?`<tr><td>&nbsp;&nbsp;— DS detritus</td><td class="n">${F(r.vDS1)} %</td><td></td></tr>`:'')+
+      `<tr><td>Incertitudine (σ)</td><td class="n">HGS ± ${F(r.sigmaVHGS1)} · LGS ± ${F(r.sigmaVLGS1)}</td><td style="font-size:11px;color:var(--ink-faint)">precizie retortă + inventar, fără amplificare de fereastră</td></tr>`;
+
+    const cA = r.current;
+    $('tIncCmp').innerHTML = '<tr><th>Comparație pe același punct curent</th><th style="text-align:right">HGS</th><th style="text-align:right">σ</th></tr>'+
+      `<tr class="hi"><td>Incremental (referință + increment)</td><td class="n">${F(r.vHGS1)} %</td><td class="n">± ${F(r.sigmaVHGS1)}</td></tr>`+
+      (cA.valid?`<tr><td>Clasic (bilanț masic, punct izolat)</td><td class="n">${F(cA.vHGS)} %</td><td class="n">± ${F(cA.sigmaHGS)}</td></tr>`
+               +`<tr class="tot"><td>Diferență</td><td class="n" colspan="2">${F(r.diffClassic)} % vol — <b>${r.acordClassic}</b></td></tr>`
+               :`<tr><td colspan="3" style="color:var(--ink-faint)">Metoda clasică nu dă rezultat valid pe acest punct izolat (fereastră insuficientă) — exact situația în care metoda incrementală ajută.</td></tr>`);
+  } else {
+    $('tInc').innerHTML=''; $('tIncCmp').innerHTML='';
+  }
+}
+
+document.querySelectorAll('input').forEach(e=>e.addEventListener('input',run));
+run();
+</script></body></html>
