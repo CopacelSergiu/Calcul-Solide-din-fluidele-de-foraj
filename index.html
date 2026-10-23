@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Solids Analysis</title>
+<style>
+/* Layout: a printed mud-report form; full-width section bands, ruled fields, figures in monospace. */
+:root{
+--paper:#ffffff;--sheet:#ffffff;--field:#ffffff;--band:#1d1f22;--band-ink:#ffffff;
+--ink:#1d1f22;--ink-2:#55595f;--ink-3:#8a8e94;--rule:#cfd2d6;--rule-2:#1d1f22;--soft:#f3f4f5;
+--accent:#a8321f;--red:#a8321f;--warn:#8a5a00;--info:#2f5d7c;
+--c-brine:#9db4c4;--c-oil:#c9b98f;--c-hgs:#5b6470;--c-cc:#d8cfb8;--c-bent:#9fb08a;--c-ds:#c46a55;--bar-ink:#1d1f22;
+--f-body:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+--f-mono:ui-monospace,'SF Mono',Menlo,Consolas,'Courier New',monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+--paper:#121315;--sheet:#17181b;--field:#1d1f22;--band:#2a2d31;--band-ink:#f1f2f3;
+--ink:#e9eaec;--ink-2:#b3b7bc;--ink-3:#80858b;--rule:#33363b;--rule-2:#c9ccd0;--soft:#1f2124;
+--accent:#e0705c;--red:#e0705c;--warn:#d9a441;--info:#7fb0d0;
+--c-brine:#56738a;--c-oil:#8f8159;--c-hgs:#a3abb5;--c-cc:#a69c82;--c-bent:#7c8f67;--c-ds:#c46a55;--bar-ink:#0f1012;color-scheme:dark}}
+:root[data-theme="dark"]{
+--paper:#121315;--sheet:#17181b;--field:#1d1f22;--band:#2a2d31;--band-ink:#f1f2f3;
+--ink:#e9eaec;--ink-2:#b3b7bc;--ink-3:#80858b;--rule:#33363b;--rule-2:#c9ccd0;--soft:#1f2124;
+--accent:#e0705c;--red:#e0705c;--warn:#d9a441;--info:#7fb0d0;
+--c-brine:#56738a;--c-oil:#8f8159;--c-hgs:#a3abb5;--c-cc:#a69c82;--c-bent:#7c8f67;--c-ds:#c46a55;--bar-ink:#0f1012;color-scheme:dark}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--f-body);background:var(--paper);color:var(--ink);line-height:1.45;font-size:15px}
+header,main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{padding-block:22px 0}
+header .w,main{max-width:900px;margin:0 auto}
+header .w{border-bottom:3px double var(--rule-2);padding-bottom:10px;display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.title{font-weight:800;font-size:20px;letter-spacing:.14em;text-transform:uppercase}
+.sub{font:12px var(--f-mono);color:var(--ink-3);letter-spacing:.04em}
+main{padding-block:18px 56px}
+.card{background:var(--sheet);border:1px solid var(--rule-2);margin-bottom:18px;min-width:0}
+.card h2{background:var(--band);color:var(--band-ink);font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:7px 12px}
+.body{padding:14px 12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--rule);border-left:1px solid var(--rule)}
+@media(min-width:680px){.grid{grid-template-columns:repeat(3,1fr)}}
+.grid.one{grid-template-columns:1fr;max-width:280px}
+.grid.two{grid-template-columns:1fr 1fr;max-width:560px}
+.grid.one+.tw{margin-top:8px}
+.f{display:flex;flex-direction:column;gap:2px;min-width:0;padding:7px 9px 8px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.f label{font-size:10.5px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+.f label span{color:var(--ink-3);text-transform:none;letter-spacing:0;font-weight:400}
+.f input{background:transparent;border:0;border-bottom:1px solid transparent;color:var(--ink);padding:2px 0;font:600 16px var(--f-mono);width:100%;font-variant-numeric:tabular-nums}
+.f input::placeholder{color:var(--ink-3);font-weight:400}
+.f:focus-within{background:var(--soft)}
+.f input:focus-visible{outline:none;border-bottom-color:var(--accent)}
+.f input.bad{color:var(--red);border-bottom-color:var(--red)}
+.f input:disabled{color:var(--ink-3)}
+.f.off{opacity:.4}
+.mode{font:600 11px var(--f-mono);color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+.seg{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:1px;background:var(--rule);margin-bottom:12px;border:1px solid var(--rule-2)}
+#segSalt{grid-template-columns:repeat(4,minmax(0,1fr))}
+.seg button{background:var(--sheet);border:0;color:var(--ink-2);padding:9px 8px;font:600 12px var(--f-body);letter-spacing:.03em;cursor:pointer}
+.seg button.on{background:var(--ink);color:var(--paper)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.subttl{font-size:10.5px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin:16px 0 4px}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:4px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--rule)}
+th{color:var(--ink-2);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;border-bottom:1px solid var(--rule-2)}
+td.n{font-family:var(--f-mono);text-align:right;white-space:nowrap}
+tr.hi td{font-weight:700}
+tr.tot td{border-top:1px solid var(--rule-2);border-bottom:0;font-weight:700}
+.note{border-left:3px solid var(--accent);padding:6px 10px;margin:10px 0;font-size:13px;color:var(--ink)}
+.note.wa{border-color:var(--warn)}
+.note.er{border-color:var(--red);color:var(--red);font-weight:600}
+.note.info{border-color:var(--info);color:var(--ink-2)}
+.big{display:grid;grid-template-columns:repeat(2,1fr);border-top:1px solid var(--rule-2);border-left:1px solid var(--rule-2);margin-bottom:12px}
+@media(min-width:680px){.big{grid-template-columns:repeat(4,1fr)}}
+.b{padding:9px 10px 10px;border-right:1px solid var(--rule-2);border-bottom:1px solid var(--rule-2);min-width:0}
+.b .l{font-size:10px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.08em;font-weight:700;order:-1}
+.b{display:flex;flex-direction:column;gap:3px}
+.b .v{font:700 24px var(--f-mono);line-height:1.1;color:var(--ink);font-variant-numeric:tabular-nums}
+.b .u{font:11px var(--f-mono);color:var(--ink-3)}
+.b.r .v{color:var(--accent)}
+.b.dead .v{color:var(--ink-3)}
+.bar{height:22px;display:flex;overflow:hidden;margin:8px 0 4px;border:1px solid var(--rule-2);background:var(--soft)}
+.bar div{display:flex;align-items:center;justify-content:center;font:700 10px var(--f-mono);overflow:hidden;white-space:nowrap;color:var(--bar-ink)}
+.leg{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--ink-2)}
+.leg i{display:inline-block;width:10px;height:10px;margin-right:5px;vertical-align:-1px;border:1px solid var(--rule-2)}
+</style>
+</head>
+<body>
+
+<header><div class="w"><div class="title">Solids Analysis</div><div class="sub">Water-base mud</div></div></header>
+
+<main>
+<div id="selfFail" class="note er" hidden></div>
+
+<form id="frm" autocomplete="off" onsubmit="return false">
+<div class="card">
+  <h2>1 · Measurements</h2>
+  <div class="body">
+  <div class="grid">
+    <div class="f"><label for="rhoMud">Mud density <span>SG</span></label><input type="text" inputmode="decimal" id="rhoMud"></div>
+    <div class="f"><label for="vWater">Retort water <span>% vol</span></label><input type="text" inputmode="decimal" id="vWater"></div>
+    <div class="f"><label for="vOil">Retort oil <span>% vol</span></label><input type="text" inputmode="decimal" id="vOil"></div>
+    <div class="f"><label for="cl">Chlorides <span>mg/L</span></label><input type="text" inputmode="decimal" id="cl"></div>
+    <div class="f"><label for="k">K⁺ <span>mg/L</span></label><input type="text" inputmode="decimal" id="k"></div>
+    <div class="f"><label for="ca">Ca²⁺ <span>mg/L</span></label><input type="text" inputmode="decimal" id="ca"></div>
+    <div class="f"><label for="mg">Mg²⁺ <span>mg/L</span></label><input type="text" inputmode="decimal" id="mg"></div>
+    <div class="f"><label for="mbt">MBT <span>kg/m³</span></label><input type="text" inputmode="decimal" id="mbt"></div>
+    <div class="f"><label for="cecDS">Drilled solids CEC <span>meq/100 g</span></label><input type="text" inputmode="decimal" id="cecDS"></div>
+    <div class="f"><label for="cecBent">Bentonite CEC <span>meq/100 g</span></label><input type="text" inputmode="decimal" id="cecBent" placeholder="65"></div>
+    <div class="f"><label for="sand">Sand <span>% vol</span></label><input type="text" inputmode="decimal" id="sand"></div>
+    <div class="f"><label for="cc">CaCO₃ <span>kg/m³</span></label><input type="text" inputmode="decimal" id="cc"></div>
+    <div class="f"><label for="sgMeas">Filtrate SG</label><input type="text" inputmode="decimal" id="sgMeas"></div>
+  </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>2 · Brine</h2>
+  <div class="body">
+  <div class="seg" id="segSalt">
+    <button type="button" data-v="mixed" class="on">Mixed</button>
+    <button type="button" data-v="nacl">NaCl</button>
+    <button type="button" data-v="kcl">KCl</button>
+    <button type="button" data-v="none">No salt</button>
+  </div>
+  <div class="tw"><table id="tSalt"></table></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>3 · Weighting material</h2>
+  <div class="body">
+  <div class="seg" id="segMat">
+    <button type="button" data-v="0">Unweighted</button>
+    <button type="button" data-v="4.20">Barite 4.20</button>
+    <button type="button" data-v="5.00">Hematite 5.00</button>
+    <button type="button" data-v="4.30">Ironite 4.30</button>
+    <button type="button" data-v="2.70">CaCO₃ 2.70</button>
+    <button type="button" data-v="2.80">LO-WATE 2.80</button>
+  </div>
+  <div class="grid one">
+    <div class="f"><label for="rhoHGS">Weighting material SG</label><input type="text" inputmode="decimal" id="rhoHGS"></div>
+  </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>4 · Results</h2>
+  <div class="body">
+  <div class="mode" id="mode">—</div>
+  <div class="big">
+    <div class="b"><div class="v" id="oSol">–</div><div class="l">Corrected solids</div><div class="u">% vol</div></div>
+    <div class="b"><div class="v" id="oHgs">–</div><div class="l">HGS</div><div class="u" id="oHgsU">% vol</div></div>
+    <div class="b"><div class="v" id="oLgs">–</div><div class="l">LGS</div><div class="u" id="oLgsU">% vol</div></div>
+    <div class="b r"><div class="v" id="oDs">–</div><div class="l">Drilled solids</div><div class="u" id="oDsU">% vol</div></div>
+  </div>
+  <div class="leg"><span><i style="background:var(--c-brine)"></i>Brine</span><span><i style="background:var(--c-oil)"></i>Oil</span>
+    <span><i style="background:var(--c-hgs)"></i>HGS</span><span><i style="background:var(--c-cc)"></i>CaCO₃</span><span><i style="background:var(--c-bent)"></i>Bentonite</span><span><i style="background:var(--c-ds)"></i>Drilled solids</span></div>
+  <div class="bar" id="bar"></div>
+  <div class="tw"><table id="tbl"></table></div>
+  <div class="subttl">Bentonite and drilled solids</div>
+  <div class="tw"><table id="tReact"></table></div>
+  <div id="msgs"></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>5 · Weight-up</h2>
+  <div class="body">
+  <div class="grid one"><div class="f"><label for="rhoT">Target density <span>SG</span></label><input type="text" inputmode="decimal" id="rhoT"></div></div>
+  <div class="tw"><table id="tWU"></table></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>6 · Reference densities</h2>
+  <div class="body">
+  <div class="grid two">
+    <div class="f"><label for="rhoOil">Oil SG</label><input type="text" inputmode="decimal" id="rhoOil" placeholder="0.840"></div>
+    <div class="f"><label for="rhoLGS">LGS SG</label><input type="text" inputmode="decimal" id="rhoLGS" placeholder="2.60"></div>
+  </div>
+  </div>
+</div>
+</form>
+</main>
+
+<script>
+/* ===================== CALCULATION ENGINE ===================== */
+const LBBBL = 8.345*42/100;
+const SIGMA_RHO = 0.01;
+const MBT_K = 5/14;
+const CEC_BENT = 65;
+const F_DEF = 1/9;
+const SG_BENT = 2.60;
+const SG_CC = 2.70;
+const KGM3_PER_LBBBL = 2.853;
+const DEF_OIL = 0.840, DEF_LGS = 2.60;
+const SAT = { NaCl:26.4, KCl:25.8 };
+
+const sgFromCl = cl => 1 + 1.166e-6*cl - 8.375e-13*cl*cl + 1.338e-18*cl*cl*cl;
+
+/* [% by weight, density kg/L] at 20 C */
+const T_NACL=[[0,1],[1,1.005],[2,1.013],[3,1.020],[4,1.027],[5,1.034],[6,1.041],[7,1.049],[8,1.056],[9,1.063],[10,1.071],
+ [11,1.078],[12,1.086],[13,1.093],[14,1.101],[15,1.109],[16,1.116],[17,1.124],[18,1.132],[19,1.140],[20,1.148],[21,1.156],
+ [22,1.164],[23,1.172],[24,1.180],[25,1.189],[26,1.197]];
+const T_CACL2=[[0,1],[1,1.007],[2,1.015],[3,1.023],[4,1.032],[5,1.040],[6,1.049],[7,1.057],[8,1.066],[9,1.075],[10,1.084],
+ [11,1.092],[12,1.101],[13,1.111],[14,1.120],[15,1.129],[16,1.139],[17,1.148],[18,1.158],[19,1.168],[20,1.178],[22,1.198],
+ [24,1.218],[26,1.239],[28,1.260],[30,1.282],[32,1.304],[34,1.326],[36,1.349],[38,1.372],[40,1.396]];
+const T_KCL=[[0,1],[1,1.005],[2,1.011],[3,1.017],[4,1.024],[5,1.030],[6,1.037],[7,1.043],[8,1.050],[9,1.057],[10,1.063],
+ [11,1.070],[12,1.077],[13,1.084],[14,1.091],[15,1.097],[16,1.104],[17,1.111],[18,1.119],[19,1.126],[20,1.133],[22,1.147],[24,1.162]];
+const T_MGCL2=[[0,1],[1,1.006],[2,1.014],[3,1.023],[4,1.031],[5,1.039],[6,1.048],[7,1.056],[8,1.065],[9,1.074],[10,1.083],
+ [12,1.101],[14,1.119],[16,1.137],[18,1.155],[20,1.174],[22,1.194],[24,1.214],[26,1.235],[28,1.256],[30,1.276]];
+
+function interp(t,w){
+  if(w<=0) return 1;
+  if(w>t[t.length-1][0]) return null;
+  for(let i=1;i<t.length;i++) if(w<=t[i][0]){ const a=t[i-1],b=t[i]; return a[1]+(b[1]-a[1])*(w-a[0])/(b[0]-a[0]); }
+  return null;
+}
+const SALTS = {
+  K:  { M:39.10, z:1, Ms:74.55,  t:T_KCL,   n:'KCl' },
+  Ca: { M:40.08, z:2, Ms:110.98, t:T_CACL2, n:'CaCl₂' },
+  Mg: { M:24.31, z:2, Ms:95.21,  t:T_MGCL2, n:'MgCl₂' },
+  Na: { M:22.99, z:1, Ms:58.44,  t:T_NACL,  n:'NaCl' }
+};
+
+function sgSum(sp){
+  let sg=1.05, prev=0, it=0;
+  while(Math.abs(sg-prev)>1e-11 && it<200){
+    prev=sg; let s=1;
+    for(const x in sp){ if(sp[x]<=0) continue; const d=interp(SALTS[x].t, sp[x]/(sg*1e4)); if(d===null) return { sg:null, out:x }; s+=d-1; }
+    sg=s; it++;
+  }
+  return { sg, out:null };
+}
+
+function brineProps(basis, Cl, K, Ca, Mg, sgMeas){
+  Cl=Math.max(Cl||0,0); K=Math.max(K||0,0); Ca=Math.max(Ca||0,0); Mg=Math.max(Mg||0,0);
+  const r={ basis, sg:1, wt:0, salt:0, sp:{}, warn:[], fail:false };
+  const err=m=>{ r.warn.push({t:'err',m}); r.fail=true; };
+  if(basis==='none') return r;
+  if(basis==='nacl'){
+    r.sg=sgFromCl(Cl); r.salt=Cl*1.65; r.sp={Na:r.salt};
+  } else if(basis==='kcl'){
+    const kcl=K*SALTS.K.Ms/SALTS.K.M; r.sp={K:kcl}; r.salt=kcl;
+    const s=sgSum(r.sp); if(s.sg===null){ err('KCl above 24 % by weight: outside the density table.'); return r; }
+    r.sg=s.sg;
+  } else {
+    let need=0; const nec={};
+    for(const x of ['K','Ca','Mg']){ const c=SALTS[x]; const v=({K,Ca,Mg})[x]; nec[x]=v*c.z*35.45/c.M; need+=nec[x]; }
+    if(need>0 && Cl<=0){ err(`Cations reported but Cl⁻ = 0. They require ${need.toFixed(0)} mg/L Cl⁻.`); return r; }
+    let fac=1, clNa=0;
+    if(Cl>=need) clNa=Cl-need; else fac=need>0?Cl/need:0;
+    for(const x of ['K','Ca','Mg']){ const v=({K,Ca,Mg})[x]; if(v>0) r.sp[x]=v*fac*SALTS[x].Ms/SALTS[x].M; }
+    if(clNa>0) r.sp.Na=clNa*SALTS.Na.Ms/35.45;
+    r.salt=Object.values(r.sp).reduce((a,b)=>a+b,0);
+    if(r.salt<=0){ r.sg=1; return r; }
+    const s=sgSum(r.sp); if(s.sg===null){ err(`${SALTS[s.out].n} above the range of the density table.`); return r; }
+    r.sg=s.sg;
+  }
+  if(sgMeas>0){ r.sgCalc=r.sg; r.sg=sgMeas; }
+  r.wt=r.salt/(r.sg*1e4);
+  for(const x in r.sp) r['w'+x]=r.sp[x]/(r.sg*1e4);
+  if((r.wNa||0)>SAT.NaCl) r.warn.push({t:'warn',m:`NaCl ${r.wNa.toFixed(1)} % by weight: above saturation (${SAT.NaCl} %).`});
+  if((r.wK||0)>SAT.KCl) r.warn.push({t:'warn',m:`KCl ${r.wK.toFixed(1)} % by weight: above saturation (${SAT.KCl} %).`});
+  return r;
+}
+
+function saltVolume(vWater, sg, wt){ if(wt<=0) return 0; return vWater*(100/(sg*(100-wt))-1); }
+
+function bentSplit(mbtLb, lgsLb, F){
+  const raw=(mbtLb-F*lgsLb)/(1-F);
+  const b=Math.min(Math.max(raw,0),Math.max(lgsLb,0));
+  return { bentLb:b, raw, dsLb:lgsLb-b };
+}
+
+function weightUp(r1,r2,sg){
+  if(r2<=r1) return { kg:0 };
+  if(r2>=sg) return { kg:null, err:'target above material SG' };
+  return { kg:1000*sg*(r2-r1)/(sg-r2) };
+}
+
+function analyze(i){
+  const warn=[]; const E=m=>warn.push({t:'err',m});
+  const out={ warn, valid:false, weighted:i.weighted };
+  if(!(i.rhoMud>=0.9 && i.rhoMud<=3)) E(`Mud density ${i.rhoMud} SG is outside 0.90–3.00.`);
+  if(i.vWater<0||i.vWater>100) E('Retort water must be between 0 and 100 %.');
+  if(i.vOil<0||i.vOil>100) E('Retort oil must be between 0 and 100 %.');
+  if(i.vWater+i.vOil>100) E(`Retort water + oil = ${(i.vWater+i.vOil).toFixed(1)} %, above 100 %.`);
+  if(!(i.rhoLGS>=1.5&&i.rhoLGS<=3.5)) E('LGS SG must be between 1.50 and 3.50.');
+  if(i.vOil>0 && !(i.rhoOil>=0.6&&i.rhoOil<=1.1)) E('Oil SG must be between 0.60 and 1.10.');
+  if(i.weighted && !(i.rhoHGS>i.rhoLGS)) E('Weighting material SG must be above LGS SG.');
+  const CB = i.cecBent>0 ? i.cecBent : CEC_BENT;
+  if(i.cecBent<0) E('Bentonite CEC cannot be negative.');
+  if(i.cecDS<0||i.cecDS>=CB) E(`Drilled solids CEC must be between 0 and the bentonite CEC (${CB} meq/100 g).`);
+  if(i.mbt<0) E('MBT cannot be negative.');
+  const br=brineProps(i.basis,i.cl,i.k,i.ca,i.mg,i.sgMeas); out.brine=br; br.warn.forEach(w=>warn.push(w));
+  if(warn.some(w=>w.t==='err')) return out;
+
+  const vSalt=saltVolume(i.vWater,br.sg,br.wt), vBrineRet=i.vWater+vSalt, vSolids=100-i.vOil-vBrineRet;
+  Object.assign(out,{ vSalt, vBrineRet, vSolids });
+  if(vSolids<-0.005){ E(`Corrected solids are negative (${vSolids.toFixed(2)} %). Check retort and salt analysis.`); return out; }
+
+  const ccOn = i.weighted && i.cc>0 && Math.abs(i.rhoHGS-SG_CC)>0.05;
+  if(i.cc>0 && !ccOn) warn.push({t:'warn',m: i.weighted ? 'CaCO₃ ignored: the selected weighting material is CaCO₃.' : 'CaCO₃ ignored in unweighted mode.'});
+  const vCC = ccOn ? i.cc/(SG_CC*10) : 0; out.vCC=vCC;
+
+  let vHGS, vLGS, vBrine;
+  if(i.weighted){
+    vHGS=(100*i.rhoMud-(100-i.vWater-vSalt-i.vOil-vCC)*i.rhoLGS-(vSalt+i.vWater)*br.sg-i.vOil*i.rhoOil-vCC*SG_CC)/(i.rhoHGS-i.rhoLGS);
+    vLGS=100-i.vWater-vSalt-i.vOil-vCC-vHGS; vBrine=vBrineRet;
+    out.sigmaHGS=100*SIGMA_RHO/(i.rhoHGS-i.rhoLGS);
+    if(ccOn && vCC>vSolids+0.005) E(`CaCO₃ (${vCC.toFixed(2)} % vol) exceeds corrected solids (${vSolids.toFixed(2)} %).`);
+    if(!ccOn && i.rhoHGS>SG_CC+0.05){
+      const exc=100*i.rhoMud-vBrine*br.sg-i.vOil*i.rhoOil-vSolids*i.rhoLGS;
+      out.hgsMax=exc/(i.rhoHGS-i.rhoLGS);
+      out.hgsMin=Math.max((exc-vSolids*(SG_CC-i.rhoLGS))/(i.rhoHGS-SG_CC),0);
+    }
+    if(vHGS<-0.005) E('Density too low for this retort: average solids SG is below LGS SG.');
+    else if(vLGS<-0.005) E('Density too high for this retort: average solids SG is above weighting material SG.');
+  } else {
+    vHGS=0;
+    vLGS=(100*i.rhoMud-(100-i.vOil)*br.sg-i.vOil*i.rhoOil)/(i.rhoLGS-br.sg);
+    vBrine=100-i.vOil-vLGS;
+    out.sigmaLGS=100*SIGMA_RHO/(i.rhoLGS-br.sg);
+    out.retortDiff=vSolids-vLGS;
+    if(vLGS<-0.005) E('Density is below brine + oil density.');
+  }
+  Object.assign(out,{ vHGS, vLGS, vBrine });
+  if(warn.some(w=>w.t==='err')) return out;
+
+  const F = i.cecDS>0 ? i.cecDS/CB : F_DEF;
+  const mbtLb=i.mbt*MBT_K, lgsLb=vLGS*i.rhoLGS*LBBBL;
+  const bs=bentSplit(mbtLb,lgsLb,F);
+  const vBent=bs.bentLb/(SG_BENT*LBBBL), vDS=vLGS-vBent;
+  Object.assign(out,{ F, mbtLb, lgsLb, bentLb:bs.bentLb, bentRaw:bs.raw, dsLb:bs.dsLb, vBent, vDS,
+    ratio: vBent>1e-6 ? vDS/vBent : null, cecAvg: vLGS>0.01 && i.mbt>0 ? CB*mbtLb/(SG_BENT*LBBBL*vLGS) : null, cecBentUsed:CB });
+  if(i.sand>vLGS+1e-9) E(`Sand (${i.sand.toFixed(2)} %) exceeds LGS (${vLGS.toFixed(2)} %).`);
+  if(bs.raw>lgsLb) warn.push({t:'warn',m:'MBT exceeds what the whole LGS could give. Bentonite limited to LGS.'});
+  out.rhoCheck=(vBrine*br.sg+i.vOil*i.rhoOil+vHGS*(i.weighted?i.rhoHGS:0)+vCC*SG_CC+vLGS*i.rhoLGS)/100;
+  out.volCheck=vBrine+i.vOil+vHGS+vCC+vLGS;
+  out.valid=!warn.some(w=>w.t==='err');
+  return out;
+}
+
+/* internal self-check against worked examples; shown only if something fails */
+function selfTest(){
+  const T=[]; const t=(name,got,exp,tol)=>T.push({name,got,exp,ok:got!==null&&isFinite(got)&&Math.abs(got-exp)<=tol});
+  t('brine SG',sgFromCl(50000),1.0564,0.00005);
+  const ex=analyze({rhoMud:16/8.345,vWater:63,vOil:5,rhoOil:7/8.345,cl:50000,k:0,ca:0,mg:0,basis:'nacl',sgMeas:0,
+    weighted:true,rhoHGS:35/8.345,rhoLGS:21.7/8.345,mbt:0,cecDS:0,sand:0,cc:0});
+  t('salt wt%',ex.brine.wt,7.81,0.005); t('salt vol',ex.vSalt,1.69,0.005);
+  t('HGS',ex.vHGS,25.41,0.10); t('LGS',ex.vLGS,4.9,0.10);
+  const bs=bentSplit(25,44.7,0.30);
+  t('bentonite',bs.bentLb,16.6,0.05); t('DS lb/bbl',bs.dsLb,28.1,0.05); t('ratio',bs.dsLb/bs.bentLb,1.69,0.01);
+  const uw=analyze({rhoMud:1.10,vWater:93.75,vOil:0,rhoOil:0.84,cl:0,k:0,ca:0,mg:0,basis:'none',sgMeas:0,weighted:false,rhoHGS:0,rhoLGS:2.6,mbt:0,cecDS:0,sand:0,cc:0});
+  t('unweighted LGS',uw.vLGS,6.25,0.001);
+  const wu=weightUp(14/8.345,16/8.345,35/8.345); t('weight-up',wu.kg/KGM3_PER_LBBBL*1000/100,1548,2);
+  { const b=brineProps('kcl',34000,37500,0,0,0), brine=86, rho=(brine*b.sg+2*2.6+3*2.7+6*4.2+3*2.6)/100, w=brine*b.sg*(100-b.wt)/100;
+    const r=analyze({rhoMud:rho,vWater:w,vOil:0,rhoOil:0.84,cl:34000,k:37500,ca:0,mg:0,basis:'kcl',sgMeas:0,weighted:true,
+      rhoHGS:4.2,rhoLGS:2.6,mbt:(2*2.6*LBBBL+3*2.6*LBBBL/9)/MBT_K,cecDS:0,sand:0,cc:3*SG_CC*10});
+    t('3-solid barite',r.vHGS,6,0.001); t('3-solid bentonite',r.vBent,2,0.001); t('3-solid DS',r.vDS,3,0.001); }
+  return T;
+}
+
+/* ===================== INTERFACE ===================== */
+const $=id=>document.getElementById(id), num=id=>{ const v=parseFloat(String($(id).value).replace(',','.').trim()); return isFinite(v)?v:0; };
+const F=(v,d=2)=>(v===null||v===undefined||!isFinite(v))?'—':v.toFixed(d);
+let basis='mixed', mat=null;
+const MAT={ '4.20':'Barite', '5.00':'Hematite', '4.30':'Ironite', '2.70':'CaCO₃', '2.80':'LO-WATE' };
+
+function seg(id,cb){ $(id).addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return;
+  [...$(id).children].forEach(x=>x.classList.toggle('on',x===b)); cb(b.dataset.v); }); }
+seg('segSalt',v=>{ basis=v; run(); });
+seg('segMat',v=>{ mat=v; if(v!=='0') $('rhoHGS').value=v; run(); });
+
+function collect(){
+  const weighted = mat!==null && mat!=='0';
+  return { rhoMud:num('rhoMud'), vWater:num('vWater'), vOil:num('vOil'), rhoOil:num('rhoOil')||DEF_OIL,
+    cl:num('cl'), k:num('k'), ca:num('ca'), mg:num('mg'), basis, sgMeas:num('sgMeas'), weighted,
+    rhoHGS:num('rhoHGS'), rhoLGS:num('rhoLGS')||DEF_LGS, mbt:num('mbt'), cecDS:num('cecDS'), cecBent:num('cecBent'), sand:num('sand'), cc:num('cc') };
+}
+
+function idle(msg){
+  $('mode').textContent='—';
+  ['oSol','oHgs','oLgs','oDs'].forEach(id=>$(id).textContent='–');
+  ['oHgs','oLgs','oDs'].forEach(id=>$(id).parentElement.classList.add('dead'));
+  $('oHgsU').textContent=$('oLgsU').textContent=$('oDsU').textContent='% vol';
+  $('bar').innerHTML=''; $('tbl').innerHTML=''; $('tReact').innerHTML='';
+  $('msgs').innerHTML=msg?`<div class="note info">${msg}</div>`:'';
+}
+
+function run(){
+  const i=collect();
+  $('rhoHGS').disabled = mat==='0';
+  dim();
+  $('vWater').classList.toggle('bad',i.vWater<0||i.vWater>100||i.vWater+i.vOil>100);
+  $('vOil').classList.toggle('bad',i.vOil<0||i.vOil>100);
+  $('cecDS').classList.toggle('bad',i.cecDS<0||i.cecDS>=(i.cecBent>0?i.cecBent:CEC_BENT));
+  wu(i);
+
+  const br=brineProps(i.basis,i.cl,i.k,i.ca,i.mg,i.sgMeas);
+  if(!br.fail && i.basis!=='none' && br.salt>0){
+    let rows='<tr><th>Salt</th><th style="text-align:right">kg/m³ filtrate</th><th style="text-align:right">% by weight</th></tr>';
+    for(const x in br.sp) rows+=`<tr><td>${SALTS[x].n}</td><td class="n">${F(br.sp[x]/1000,2)}</td><td class="n">${F(br['w'+x],3)}</td></tr>`;
+    rows+=`<tr class="hi"><td>Total salt</td><td class="n">${F(br.salt/1000,2)}</td><td class="n">${F(br.wt,3)}</td></tr>`+
+      `<tr><td>Brine SG</td><td class="n" colspan="2">${F(br.sg,4)}</td></tr>`;
+    if(i.vWater>0) rows+=`<tr class="tot"><td>Salt volume</td><td class="n" colspan="2">${F(saltVolume(i.vWater,br.sg,br.wt),3)} %</td></tr>`;
+    $('tSalt').innerHTML=rows;
+  } else $('tSalt').innerHTML='';
+
+  if(i.rhoMud<=0 || i.vWater<=0) return idle('');
+  if(mat===null) return idle('Select the weighting material, or Unweighted.');
+  const a=analyze(i), ok=a.valid, weighted=i.weighted;
+  $('mode').textContent=(weighted?(MAT[i.rhoHGS.toFixed(2)]||'Weighting material')+' '+F(i.rhoHGS,2):'Unweighted')+' · '+({mixed:'Mixed brine',nacl:'NaCl brine',kcl:'KCl brine',none:'Fresh water'})[i.basis]+(i.sgMeas>0&&i.basis!=='none'?' · measured filtrate SG':'')+(a.vCC>0?' · measured CaCO₃':'');
+
+  $('oSol').textContent=a.vSolids!==undefined?F(a.vSolids):'–';
+  ['oHgs','oLgs','oDs'].forEach(id=>$(id).parentElement.classList.toggle('dead',!ok));
+  $('oHgs').textContent=ok?(weighted?F(a.vHGS):'0.00'):'–';
+  $('oLgs').textContent=ok?F(a.vLGS):'–';
+  $('oDs').textContent=ok?F(a.vDS):'–';
+  $('oHgsU').textContent=ok&&weighted?`± ${F(a.sigmaHGS)} · ${F(a.vHGS*i.rhoHGS*10,0)} kg/m³`:'% vol';
+  $('oLgsU').textContent=ok?`± ${F(weighted?a.sigmaHGS:a.sigmaLGS)} · ${F(a.vLGS*i.rhoLGS*10,0)} kg/m³`:'% vol';
+  $('oDsU').textContent=ok?`${F(a.vDS*i.rhoLGS*10,0)} kg/m³`:'% vol';
+  $('bar').innerHTML=ok?[[a.vBrine,'var(--c-brine)'],[i.vOil,'var(--c-oil)'],[a.vHGS,'var(--c-hgs)'],[a.vCC,'var(--c-cc)'],[a.vBent,'var(--c-bent)'],[a.vDS,'var(--c-ds)']]
+    .map(([v,c])=>`<div style="width:${Math.max(v,0)}%;background:${c}">${v>6?v.toFixed(1):''}</div>`).join(''):'';
+
+  if(ok){
+    const R=[['Brine',a.vBrine,a.brine.sg,false],['Oil',i.vOil,i.rhoOil,false],
+      ...(weighted?[['<b>HGS</b> · '+(MAT[i.rhoHGS.toFixed(2)]||'weighting material'),a.vHGS,i.rhoHGS,true]]:[]),
+      ...(a.vCC>0?[['<b>CaCO₃</b>',a.vCC,SG_CC,true]]:[]),
+      ['<b>LGS</b>',a.vLGS,i.rhoLGS,true],
+      ['&nbsp;&nbsp;Bentonite',a.vBent,SG_BENT,true],['&nbsp;&nbsp;Drilled solids',a.vDS,i.rhoLGS,true],
+      ...(i.sand>0?[['&nbsp;&nbsp;&nbsp;&nbsp;of which sand',i.sand,i.rhoLGS,true]]:[])];
+    $('tbl').innerHTML='<tr><th>Component</th><th style="text-align:right">% vol</th><th style="text-align:right">SG</th><th style="text-align:right">kg/m³</th></tr>'+
+      R.map(r=>`<tr${/HGS|LGS|CaCO/.test(r[0])?' class="hi"':''}><td>${r[0]}</td><td class="n">${F(r[1])}</td><td class="n">${F(r[2],3)}</td><td class="n">${r[3]?F(r[1]*r[2]*10,1):'—'}</td></tr>`).join('')+
+      `<tr class="tot"><td>Total</td><td class="n">${F(a.volCheck)}</td><td class="n" colspan="2">${F(a.rhoCheck,4)} SG</td></tr>`;
+    $('tReact').innerHTML='<tr><th>Item</th><th style="text-align:right">kg/m³</th><th style="text-align:right">% vol</th></tr>'+
+      `<tr><td>MBT</td><td class="n">${F(i.mbt,1)}</td><td class="n">—</td></tr>`+
+      `<tr><td>LGS</td><td class="n">${F(a.vLGS*i.rhoLGS*10,1)}</td><td class="n">${F(a.vLGS)}</td></tr>`+
+      `<tr class="hi"><td>Bentonite</td><td class="n">${F(a.vBent*SG_BENT*10,1)}</td><td class="n">${F(a.vBent)}</td></tr>`+
+      `<tr class="hi"><td>Drilled solids</td><td class="n">${F(a.vDS*i.rhoLGS*10,1)}</td><td class="n">${F(a.vDS)}</td></tr>`+
+      `<tr><td>F</td><td class="n" colspan="2">${F(a.F,4)}</td></tr>`+
+      `<tr><td>Drilled solids / bentonite</td><td class="n" colspan="2">${F(a.ratio,2)}</td></tr>`+
+      (a.cecAvg!==null?`<tr><td>Average LGS CEC</td><td class="n" colspan="2">${F(a.cecAvg,1)} meq/100 g</td></tr>`:'');
+  } else { $('tbl').innerHTML=''; $('tReact').innerHTML=''; }
+
+  let h='';
+  a.warn.forEach(w=>{ h+=`<div class="note ${w.t==='err'?'er':'wa'}">${w.m}</div>`; });
+  if(ok && weighted && a.hgsMax!==undefined && i.cc<=0)
+    h+=`<div class="note info">HGS range if the mud also contains unmeasured CaCO₃: ${F(a.hgsMin)} – ${F(a.hgsMax)} % vol.</div>`;
+  if(ok && !weighted) h+=`<div class="note info">Retort corrected solids ${F(a.vSolids)} % vol · difference ${a.retortDiff>=0?'+':''}${F(a.retortDiff)} % vol.</div>`;
+  $('msgs').innerHTML=h;
+}
+
+function wu(i){
+  const r2=num('rhoT');
+  if(r2<=0){ $('tWU').innerHTML=''; return; }
+  if(i.rhoMud<=0){ $('tWU').innerHTML='<tr><td>Enter the mud density in section 1.</td></tr>'; return; }
+  if(r2<=i.rhoMud){ $('tWU').innerHTML=`<tr><td>Target density must be above the current mud density (${F(i.rhoMud,3)} SG).</td></tr>`; return; }
+  $('tWU').innerHTML='<tr><th>Material</th><th style="text-align:right">SG</th><th style="text-align:right">kg/m³</th><th style="text-align:right">m³/m³</th></tr>'+
+    Object.keys(MAT).map(s=>{ const sg=parseFloat(s), w=weightUp(i.rhoMud,r2,sg);
+      return w.err?`<tr><td>${MAT[s]}</td><td class="n">${s}</td><td class="n" colspan="2" style="color:var(--red)">${w.err}</td></tr>`
+        :`<tr><td>${MAT[s]}</td><td class="n">${s}</td><td class="n">${F(w.kg,1)}</td><td class="n">${F(w.kg/(sg*1000),4)}</td></tr>`; }).join('');
+}
+
+function dim(){
+  const off=new Set();
+  if(basis==='nacl') ['k','ca','mg'].forEach(x=>off.add(x));
+  if(basis==='kcl') ['cl','ca','mg'].forEach(x=>off.add(x));
+  if(basis==='none') ['cl','k','ca','mg','sgMeas'].forEach(x=>off.add(x));
+  if(mat==='0'){ off.add('cc'); off.add('rhoHGS'); }
+  if(mat==='2.70') off.add('cc');
+  document.querySelectorAll('#frm .f').forEach(f=>{ const inp=f.querySelector('input'); f.classList.toggle('off',!!inp&&off.has(inp.id)); });
+}
+
+/* every opening starts from zero */
+function resetAll(){
+  document.querySelectorAll('#frm input').forEach(e=>{ e.value=''; e.classList.remove('bad'); });
+  ['rhoMud','vWater','vOil','cl','k','ca','mg','mbt','cecDS','sand','cc','sgMeas','rhoHGS','rhoT'].forEach(id=>$(id).value='0');
+  mat=null; [...$('segMat').children].forEach(b=>b.classList.remove('on'));
+  basis='mixed'; [...$('segSalt').children].forEach(b=>b.classList.toggle('on',b.dataset.v==='mixed'));
+}
+
+const fails=selfTest().filter(x=>!x.ok);
+if(fails.length){ $('selfFail').hidden=false; $('selfFail').textContent='Calculation self-check failed: '+fails.map(x=>x.name).join(', '); }
+
+document.querySelectorAll('#frm input').forEach(e=>e.addEventListener('input',run));
+resetAll();
+window.addEventListener('pageshow',ev=>{ if(ev.persisted){ resetAll(); run(); } });
+run();
+</script>
+</body>
+</html>
